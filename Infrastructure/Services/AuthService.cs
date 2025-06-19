@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using Domain.Constants;
 using Domain.DTOs.AuthDTOs;
 using Domain.DTOs.EmailDTOs;
@@ -21,7 +22,126 @@ public class AuthService(
         IConfiguration config,
         IEmailService emailService) : IAuthService
 {
-    EmailVerification verification = new();
+    EmailVerification emailVerification = new();
+    
+    public async Task<Response<string>> Register(RegisterDTO registerDto)
+    {
+        registerDto.FirstName = registerDto.FirstName.Trim();
+        registerDto.LastName = registerDto.LastName.Trim();
+        registerDto.Email = registerDto.Email.Trim();
+        registerDto.Phone = registerDto.Phone.Trim();
+
+        //FirstName
+        if (string.IsNullOrWhiteSpace(registerDto.FirstName))
+            return new Response<string>(HttpStatusCode.BadRequest, "First Name can't be empty");
+
+        if (!registerDto.FirstName.All(char.IsLetterOrDigit))
+            return new Response<string>(HttpStatusCode.BadRequest, "First Name must not contain spaces or special characters!");
+
+        //LastName
+        if (string.IsNullOrWhiteSpace(registerDto.LastName))
+            return new Response<string>(HttpStatusCode.BadRequest, "Last Name can't be empty");
+
+        if (!registerDto.LastName.All(char.IsLetterOrDigit))
+            return new Response<string>(HttpStatusCode.BadRequest, "Last Name must not contain spaces or special characters!");
+
+        //Phone
+        if (string.IsNullOrWhiteSpace(registerDto.Phone))
+            return new Response<string>(HttpStatusCode.BadRequest, "Phone can't be empty");
+
+        if (!registerDto.Phone.All(char.IsDigit))
+            return new Response<string>(HttpStatusCode.BadRequest, "Phone must contain only numbers, no spaces or special characters allowed!");
+
+        if (registerDto.Phone.Length < 9)
+            return new Response<string>(HttpStatusCode.BadRequest, "Phone size must contain at least 9 digits");
+
+        var phoneCheck = await userRepository.AnyAsync(c => c.Phone.Trim() == registerDto.Phone.Trim());
+        if (phoneCheck)
+            return new Response<string>(HttpStatusCode.BadRequest, "User with this phone numbers alredy registered");
+
+        //Email
+        if (string.IsNullOrWhiteSpace(registerDto.Email))
+            return new Response<string>(HttpStatusCode.BadRequest, "Email can't be empty");
+
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(registerDto.Email);
+            if (addr.Address != registerDto.Email)
+                return new Response<string>(HttpStatusCode.BadRequest, "Email format is invalid");
+        }
+        catch
+        {
+            return new Response<string>(HttpStatusCode.BadRequest, "Email format is invalid");
+        }
+
+        if (!emailVerification.EmailVerificationMethod(registerDto.Email))
+            return new Response<string>(HttpStatusCode.BadRequest, "Email must be from gmail.com or mail.ru");
+
+        var emailCheck = await userRepository.AnyAsync(c => c.Email.ToLower() == registerDto.Email.ToLower());
+        if (emailCheck)
+            return new Response<string>(HttpStatusCode.BadRequest, "User with this email is alredy registered");
+
+        //Password
+        if (string.IsNullOrWhiteSpace(registerDto.Password))
+            return new Response<string>(HttpStatusCode.BadRequest, "Password can't be empty");
+
+        if (registerDto.Password.Length < 4)
+            return new Response<string>(HttpStatusCode.BadRequest, "Password must contain 4 symbols or more");
+
+        if (!Regex.IsMatch(registerDto.Password, @"^[a-zA-Z0-9]+$"))
+            return new Response<string>(HttpStatusCode.BadRequest, "Password must only contain letters and digits! (no symbols or spaces)");
+
+        var code = new Random().Next(100000, 999999).ToString();
+
+        var user = new User
+        {
+            FirstName = registerDto.FirstName,
+            LastName = registerDto.LastName,
+            Email = registerDto.Email,
+            Phone = registerDto.Phone,
+            Role = Roles.User,
+            ResetToken = code,
+            ResetTokenExpiry = DateTime.UtcNow.AddMinutes(10),
+        };
+
+        user.PasswordHash = passwordHasher.HashPassword(user, registerDto.Password);
+
+        await userRepository.AddAsync(user);
+        await userRepository.SaveChangesAsync();
+
+        var emailDto = new EmailDTO
+        {
+            To = user.Email,
+            Subject = "Registration Confirmation Code",
+            Body = $"Hello {user.FirstName},\n\nYour confirmation code is: {code}"
+        };
+
+        await emailService.SendEmailAsync(emailDto);
+
+        return new Response<string>("Verification code sent to email");
+    }
+
+    public async Task<Response<string>> VerifyRegistrationCode(VerifyEmailDTO dto)
+    {
+        var user = await userRepository.FirstOrDefaultAsync(u =>
+            u.Email.ToLower() == dto.Email.ToLower() &&
+            u.ResetToken == dto.Code);
+
+        if (user == null)
+            return new Response<string>(HttpStatusCode.BadRequest, "Invalid email or code");
+
+        if (user.ResetTokenExpiry < DateTime.UtcNow)
+            return new Response<string>(HttpStatusCode.BadRequest, "Verification code expired");
+
+        user.ResetToken = null;
+        user.ResetTokenExpiry = null;
+        user.IsEmailVerified = true;
+
+        userRepository.Update(user);
+        await userRepository.SaveChangesAsync();
+
+        return new Response<string>("Email verified. Registration completed.");
+    }
 
     public async Task<Response<TokenDTO>> Login(LoginDTO loginDto)
     {
@@ -37,6 +157,9 @@ public class AuthService(
             return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
         }
 
+        if (user.IsEmailVerified == false)
+            return new Response<TokenDTO>(HttpStatusCode.Forbidden, "Email is not verified yet.");
+
         var emailDto = new EmailDTO()
         {
             To = user.Email,
@@ -50,57 +173,14 @@ public class AuthService(
         return new Response<TokenDTO>(new TokenDTO { Token = token });
     }
 
-    public async Task<Response<string>> Register(RegisterDTO registerDto)
-    {
-        if (registerDto.FirstName == null || string.IsNullOrWhiteSpace(registerDto.FirstName))
-            return new Response<string>(HttpStatusCode.BadRequest, $"First Name can't be empty!");
-
-        if (registerDto.LastName == null || string.IsNullOrWhiteSpace(registerDto.LastName))
-            return new Response<string>(HttpStatusCode.BadRequest, $"Last Name can't be empty!");
-
-        var verificationResult = verification.EmailVerificationMethod(registerDto.Email);
-        if (verificationResult == false)
-            return new Response<string>(HttpStatusCode.BadRequest, $"Email input error!");
-
-        if (registerDto.Phone == null || string.IsNullOrWhiteSpace(registerDto.Phone))
-            return new Response<string>(HttpStatusCode.BadRequest, $"Phone can't be empty!");
-
-        if (registerDto.Password.Length < 4 || string.IsNullOrWhiteSpace(registerDto.Password))
-            return new Response<string>(HttpStatusCode.BadRequest, $"Password has to be 4 characters or more!");
-
-        var existingUser = await userRepository.AnyAsync(c => c.Email.ToLower() == registerDto.Email.ToLower());
-        if (existingUser)
-            return new Response<string>(HttpStatusCode.BadRequest, "User with this email already exists.");
-
-        var user = new User
-        {  
-            FirstName = registerDto.FirstName,
-            LastName = registerDto.LastName,
-            Email = registerDto.Email,  
-            Phone = registerDto.Phone,  
-            Role = Roles.User
-        };
-   
-        user.PasswordHash = passwordHasher.HashPassword(user, registerDto.Password);
-
-        var emailDto = new EmailDTO()
-        {
-            To = user.Email,
-            Subject = "Account info",
-            Body = $"Hi {user.FirstName}! Your registration has been successfull."
-        };
-
-        await emailService.SendEmailAsync(emailDto);
-
-        await userRepository.AddAsync(user);
-        await userRepository.SaveChangesAsync();
-
-        return new Response<string>("User registered successfully");
-    }
-
     public async Task<Response<string>> RequestResetPassword(RequestResetPasswordDTO requestResetPassword)
     {
-        var user = await userRepository.FirstOrDefaultAsync(c => c.Email == requestResetPassword.Email);
+        requestResetPassword.Email = requestResetPassword.Email.Trim().ToLower();
+        
+        if (string.IsNullOrWhiteSpace(requestResetPassword.Email))
+            return new Response<string>(HttpStatusCode.BadRequest, "Email is required.");
+
+        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == requestResetPassword.Email);
         if (user == null)
         {
             return new Response<string>($"User with email: {requestResetPassword.Email} is not registered. Please procceed registration before password reset request.");
@@ -111,7 +191,7 @@ public class AuthService(
 
         user.ResetToken = resetToken;
         user.ResetTokenExpiry = tokenExpiry;
-        
+
         userRepository.Update(user);
         await userRepository.SaveChangesAsync();
 
@@ -135,21 +215,30 @@ public class AuthService(
 
     public async Task<Response<string>> ResetPassword(ResetPasswordDTO resetPasswordDto)
     {
-        if ((resetPasswordDto.NewPassword.Length < 4 || string.IsNullOrWhiteSpace(resetPasswordDto.NewPassword)) &&
-            (resetPasswordDto.ConfirmPassword.Length < 4 || string.IsNullOrWhiteSpace(resetPasswordDto.ConfirmPassword)))
+        resetPasswordDto.Email = resetPasswordDto.Email.Trim().ToLower();
+
+        if (string.IsNullOrWhiteSpace(resetPasswordDto.Email))
+            return new Response<string>(HttpStatusCode.BadRequest, "Email is required.");
+
+        if (resetPasswordDto.NewPassword.Length < 4 || resetPasswordDto.ConfirmPassword.Length < 4)
             return new Response<string>(HttpStatusCode.BadRequest, $"Password has to be 4 characters or more!");
+
+        if (!Regex.IsMatch(resetPasswordDto.NewPassword, @"^[a-zA-Z0-9]+$"))
+            return new Response<string>(HttpStatusCode.BadRequest, "Password must contain only letters and digits");
 
         if (resetPasswordDto.NewPassword != resetPasswordDto.ConfirmPassword)
             return new Response<string>(HttpStatusCode.BadRequest, $"Passwords don't match!");
 
-        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == resetPasswordDto.Email.ToLower());
+        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == resetPasswordDto.Email);
         if (user == null)
         {
             return new Response<string>(HttpStatusCode.BadRequest, "Invalid token or email.");
         }
 
-        if (string.IsNullOrEmpty(user.ResetToken) || user.ResetToken != resetPasswordDto.Token ||
-            user.ResetTokenExpiry == null || user.ResetTokenExpiry < DateTime.UtcNow)
+        if (string.IsNullOrEmpty(user.ResetToken) || 
+            user.ResetTokenExpiry is null || 
+            user.ResetToken != resetPasswordDto.Token || 
+            user.ResetTokenExpiry < DateTime.UtcNow)
         {
             return new Response<string>(HttpStatusCode.BadRequest, "Invalid or expired token.");
         }
@@ -191,4 +280,5 @@ public class AuthService(
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
 }

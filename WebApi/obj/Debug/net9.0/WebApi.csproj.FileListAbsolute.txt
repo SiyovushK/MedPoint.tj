@@ -165,3 +165,4 @@ C:\Users\Asus\Desktop\MedPoint.tj\WebApi\obj\Debug\net9.0\refint\WebApi.dll
 C:\Users\Asus\Desktop\MedPoint.tj\WebApi\obj\Debug\net9.0\WebApi.pdb
 C:\Users\Asus\Desktop\MedPoint.tj\WebApi\obj\Debug\net9.0\WebApi.genruntimeconfig.cache
 C:\Users\Asus\Desktop\MedPoint.tj\WebApi\obj\Debug\net9.0\ref\WebApi.dll
+C:\Users\Asus\Desktop\MedPoint.tj\WebApi\obj\Debug\net9.0\WebApi.sourcelink.json

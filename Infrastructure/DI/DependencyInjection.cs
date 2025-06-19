@@ -11,9 +11,9 @@ public static class DependencyInjection
 {
     public static void AddInfrastructure(this IServiceCollection services)
     {
-        // services.AddScoped<UserRepository>();
+        services.AddScoped<UserRepository>();
         // services.AddScoped<IUserService, UserService>();
-        // services.AddScoped<IBaseRepository<User, int>, UserRepository>();
+        services.AddScoped<IBaseRepository<User, int>, UserRepository>();
 
         services.AddScoped(typeof(IAuthRepository<>), typeof(AuthRepository<>));
         services.AddScoped<IAuthService, AuthService>();

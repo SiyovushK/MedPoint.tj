@@ -21,6 +21,7 @@ public class User
     public string Role { get; set; } = Roles.User;
 
     public bool IsDeleted { get; set; } = false;
+    public bool IsEmailVerified { get; set; } = false;
 
     public string? ResetToken { get; set; }
     public DateTime? ResetTokenExpiry { get; set; }

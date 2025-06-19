@@ -9,14 +9,14 @@ public static class DefaultUser
 {
     public static async Task SeedAsync(DataContext context, IPasswordHasher<User> passwordHasher)
     {
-        //admin
+        // Admin
         var adminEmail = "kurbonovs397@gmail.com";
         var adminPhone = "018581212";
 
         var emailCheckAdmin = await context.Users.FirstOrDefaultAsync(c => c.Email == adminEmail);
         var phoneCheckAdmin = await context.Users.FirstOrDefaultAsync(c => c.Phone == adminPhone);
-        
-        if (phoneCheckAdmin != null || emailCheckAdmin != null)
+
+        if (phoneCheckAdmin == null && emailCheckAdmin == null)
         {
             var admin = new User
             {
@@ -24,22 +24,22 @@ public static class DefaultUser
                 LastName = "User",
                 Phone = adminPhone,
                 Email = adminEmail,
-                Role = Roles.Admin
+                Role = Roles.Admin,
+                IsEmailVerified = true
             };
 
             admin.PasswordHash = passwordHasher.HashPassword(admin, "admin");
             await context.Users.AddAsync(admin);
-        }   
+        }
 
-
-        //master
+        // Master
         var masterEmail = "kurbanovs397@gmail.com";
         var masterPhone = "018581313";
-        
+
         var emailCheckMaster = await context.Users.FirstOrDefaultAsync(c => c.Email == masterEmail);
         var phoneCheckMaster = await context.Users.FirstOrDefaultAsync(c => c.Phone == masterPhone);
-        
-        if (phoneCheckMaster != null || emailCheckMaster != null)
+
+        if (phoneCheckMaster == null && emailCheckMaster == null)
         {
             var master = new User
             {
@@ -47,13 +47,13 @@ public static class DefaultUser
                 LastName = "Test",
                 Phone = masterPhone,
                 Email = masterEmail,
-                Role = Roles.Master
+                Role = Roles.Master,
+                IsEmailVerified = true
             };
 
             master.PasswordHash = passwordHasher.HashPassword(master, "master");
             await context.Users.AddAsync(master);
-        }    
-
+        }
 
         await context.SaveChangesAsync();
     }
