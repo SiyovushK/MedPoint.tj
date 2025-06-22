@@ -4,5 +4,6 @@ namespace Domain.DTOs.UserDTOs;
 
 public class ChangeUserRoleDTO
 {
-    public string Role { get; set; } = Roles.User;
+    public int UserId { get; set; }
+    public string Role { get; set; } = string.Empty;
 }

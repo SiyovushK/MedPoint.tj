@@ -32,27 +32,27 @@ public static class DefaultUser
             await context.Users.AddAsync(admin);
         }
 
-        // Master
-        var masterEmail = "kurbanovs397@gmail.com";
-        var masterPhone = "018581313";
+        // Doctor
+        var doctorEmail = "kurbanovs397@gmail.com";
+        var doctorPhone = "018581313";
 
-        var emailCheckMaster = await context.Users.FirstOrDefaultAsync(c => c.Email == masterEmail);
-        var phoneCheckMaster = await context.Users.FirstOrDefaultAsync(c => c.Phone == masterPhone);
+        var emailCheckDoctor = await context.Users.FirstOrDefaultAsync(c => c.Email == doctorEmail);
+        var phoneCheckDoctor = await context.Users.FirstOrDefaultAsync(c => c.Phone == doctorPhone);
 
-        if (phoneCheckMaster == null && emailCheckMaster == null)
+        if (phoneCheckDoctor == null && emailCheckDoctor == null)
         {
-            var master = new User
+            var doctor = new User
             {
-                FirstName = "Master",
+                FirstName = "Doctor",
                 LastName = "Test",
-                Phone = masterPhone,
-                Email = masterEmail,
-                Role = Roles.Master,
+                Phone = doctorPhone,
+                Email = doctorEmail,
+                Role = Roles.Doctor,
                 IsEmailVerified = true
             };
 
-            master.PasswordHash = passwordHasher.HashPassword(master, "master");
-            await context.Users.AddAsync(master);
+            doctor.PasswordHash = passwordHasher.HashPassword(doctor, "doctor");
+            await context.Users.AddAsync(doctor);
         }
 
         await context.SaveChangesAsync();

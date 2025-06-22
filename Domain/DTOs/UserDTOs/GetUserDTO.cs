@@ -1,5 +1,3 @@
-using Domain.Constants;
-
 namespace Domain.DTOs.UserDTOs;
 
 public class GetUserDTO
@@ -9,7 +7,8 @@ public class GetUserDTO
     public string LastName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string Role { get; set; } = Roles.User;
+    public string Role { get; set; } = string.Empty;
 
-    public bool IsDeleted { get; set; } = false;
+    public bool IsDeleted { get; set; }
+    public bool IsEmailVerified { get; set; }
 }
