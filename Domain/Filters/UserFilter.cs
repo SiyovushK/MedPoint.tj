@@ -10,6 +10,7 @@ public class UserFilter
     public string Role { get; set; } = string.Empty;
 
     public bool? IsDeleted { get; set; }
+    public bool? IsEmailVerified { get; set; }
 
     public int PageSize { get; set; }
     public int PageNumber { get; set; }

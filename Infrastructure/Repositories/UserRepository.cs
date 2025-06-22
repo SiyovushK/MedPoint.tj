@@ -13,6 +13,12 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
         return await context.SaveChangesAsync();
     }
 
+    public async Task<int> UpdateAsync(User entity)
+    {
+        context.Users.Update(entity);
+        return await context.SaveChangesAsync();
+    }
+
     public async Task<int> DeleteAsync(User entity)
     {
         context.Users.Remove(entity);
@@ -27,12 +33,6 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
     public async Task<User?> GetByIdAsync(int id)
     {
         return await context.Users.FirstOrDefaultAsync(u => u.Id == id);
-    }
-
-    public async Task<int> UpdateAsync(User entity)
-    {
-        context.Users.Update(entity);
-        return await context.SaveChangesAsync();
     }
 
     public async Task<User?> GetByPhoneAsync(string phone)

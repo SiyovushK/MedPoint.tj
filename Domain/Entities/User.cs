@@ -4,7 +4,7 @@ using Domain.Constants;
 namespace Domain.Entities;
 
 public class User
-{   
+{
     [Key]
     public int Id { get; set; }
     [Required, StringLength(50)]
@@ -25,4 +25,7 @@ public class User
 
     public string? ResetToken { get; set; }
     public DateTime? ResetTokenExpiry { get; set; }
+
+    public List<Order> Orders { get; set; } = new();
+    public List<Review> Reviews { get; set; } = new();
 }
