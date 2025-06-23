@@ -18,12 +18,14 @@ namespace Infrastructure.Services;
 
 public class AuthService(
         IAuthRepository<User> userRepository,
-        IPasswordHasher<User> passwordHasher,
+        IPasswordHasher<User> passwordHasherUser,
+        IAuthRepository<Doctor> doctorRepository,
+        IPasswordHasher<Doctor> passwordHasherDoctor,
         IConfiguration config,
         IEmailService emailService) : IAuthService
 {
     EmailVerification emailVerification = new();
-    
+
     public async Task<Response<string>> Register(RegisterDTO registerDto)
     {
         registerDto.FirstName = registerDto.FirstName.Trim();
@@ -104,7 +106,7 @@ public class AuthService(
             ResetTokenExpiry = DateTime.UtcNow.AddMinutes(10),
         };
 
-        user.PasswordHash = passwordHasher.HashPassword(user, registerDto.Password);
+        user.PasswordHash = passwordHasherUser.HashPassword(user, registerDto.Password);
 
         await userRepository.AddAsync(user);
         await userRepository.SaveChangesAsync();
@@ -145,113 +147,152 @@ public class AuthService(
 
     public async Task<Response<TokenDTO>> Login(LoginDTO loginDto)
     {
-        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == loginDto.Email.ToLower());
-        if (user == null)
+        var email = loginDto.Email.Trim().ToLower();
+
+        // 1. Проверка пользователей
+        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == email);
+        if (user != null)
         {
-            return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
+            var passwordResult = passwordHasherUser.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
+            if (passwordResult == PasswordVerificationResult.Failed)
+                return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
+
+            if (!user.IsEmailVerified)
+                return new Response<TokenDTO>(HttpStatusCode.Forbidden, "Email is not verified yet.");
+
+            var token = GenerateJwt(user);
+            await emailService.SendEmailAsync(new EmailDTO
+            {
+                To = user.Email,
+                Subject = "Login Info",
+                Body = $"Hi {user.FirstName}! You have logged in successfully."
+            });
+
+            return new Response<TokenDTO>(new TokenDTO { Token = token });
         }
 
-        var passwordVerificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
-        if (passwordVerificationResult == PasswordVerificationResult.Failed)
+        // 2. Проверка докторов
+        var doctor = await doctorRepository.FirstOrDefaultAsync(d => d.Email.ToLower() == email);
+        if (doctor != null)
         {
-            return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
+            var passwordResult = passwordHasherDoctor.VerifyHashedPassword(doctor, doctor.PasswordHash, loginDto.Password);
+            if (passwordResult == PasswordVerificationResult.Failed)
+                return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
+
+            var token = GenerateJwt(doctor);
+            await emailService.SendEmailAsync(new EmailDTO
+            {
+                To = doctor.Email,
+                Subject = "Login Info",
+                Body = $"Hi {doctor.FirstName}! You have logged in successfully."
+            });
+
+            return new Response<TokenDTO>(new TokenDTO { Token = token });
         }
 
-        if (user.IsEmailVerified == false)
-            return new Response<TokenDTO>(HttpStatusCode.Forbidden, "Email is not verified yet.");
-
-        var emailDto = new EmailDTO()
-        {
-            To = user.Email,
-            Subject = "Account info",
-            Body = $"Hi {user.FirstName}! You have logged into your account successfully."
-        };
-
-        await emailService.SendEmailAsync(emailDto);
-
-        var token = GenerateJwt(user);
-        return new Response<TokenDTO>(new TokenDTO { Token = token });
+        return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
     }
 
-    public async Task<Response<string>> RequestResetPassword(RequestResetPasswordDTO requestResetPassword)
+    public async Task<Response<string>> RequestResetPassword(RequestResetPasswordDTO dto)
     {
-        requestResetPassword.Email = requestResetPassword.Email.Trim().ToLower();
-        
-        if (string.IsNullOrWhiteSpace(requestResetPassword.Email))
+        var email = dto.Email.Trim().ToLower();
+        if (string.IsNullOrWhiteSpace(email))
             return new Response<string>(HttpStatusCode.BadRequest, "Email is required.");
 
-        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == requestResetPassword.Email);
-        if (user == null)
+        // 1. Поиск среди пользователей
+        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == email);
+        if (user != null)
         {
-            return new Response<string>($"User with email: {requestResetPassword.Email} is not registered. Please procceed registration before password reset request.");
+            var token = Guid.NewGuid().ToString();
+            user.ResetToken = token;
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            userRepository.Update(user);
+            await userRepository.SaveChangesAsync();
+
+            await emailService.SendEmailAsync(new EmailDTO
+            {
+                To = email,
+                Subject = "Password Reset Request",
+                Body = $"Hi {user.FirstName},\n\nUse this token to reset your password:\n{token}"
+            });
+
+            return new Response<string>($"Reset token sent to: {email}");
         }
 
-        var resetToken = Guid.NewGuid().ToString();
-        var tokenExpiry = DateTime.UtcNow.AddHours(1);
-
-        user.ResetToken = resetToken;
-        user.ResetTokenExpiry = tokenExpiry;
-
-        userRepository.Update(user);
-        await userRepository.SaveChangesAsync();
-
-        var emailDto = new EmailDTO()
+        // 2. Поиск среди докторов
+        var doctor = await doctorRepository.FirstOrDefaultAsync(d => d.Email.ToLower() == email);
+        if (doctor != null)
         {
-            To = requestResetPassword.Email,
-            Subject = "Password Reset Request",
-            Body = $@"<p>Hello <strong>{user.FirstName}</strong>,</p>
-                <p>You have requested a password reset. Please use the following token to reset your password:</p>
-                <p><strong>{resetToken}</strong></p>
-                <p>This token is valid for <strong>1 hour</strong>. If you did not request this, please ignore this email.</p>
-                <p>Thank you,<br/>Your Support Team</p>"
-        };
+            var token = Guid.NewGuid().ToString();
+            doctor.ResetToken = token;
+            doctor.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            doctorRepository.Update(doctor);
+            await doctorRepository.SaveChangesAsync();
 
-        var emailSent = await emailService.SendEmailAsync(emailDto);
+            await emailService.SendEmailAsync(new EmailDTO
+            {
+                To = email,
+                Subject = "Password Reset Request",
+                Body = $"Hi {doctor.FirstName},\n\nUse this token to reset your password:\n{token}"
+            });
 
-        return emailSent
-            ? new Response<string>($"A password reset link has been sent to email: {requestResetPassword.Email}.")
-            : new Response<string>(HttpStatusCode.InternalServerError, "Failed to send reset password email.");
+            return new Response<string>($"Reset token sent to: {email}");
+        }
+
+        return new Response<string>($"Email {email} is not registered.");
     }
 
-    public async Task<Response<string>> ResetPassword(ResetPasswordDTO resetPasswordDto)
+    public async Task<Response<string>> ResetPassword(ResetPasswordDTO dto)
     {
-        resetPasswordDto.Email = resetPasswordDto.Email.Trim().ToLower();
+        var email = dto.Email.Trim().ToLower();
 
-        if (string.IsNullOrWhiteSpace(resetPasswordDto.Email))
+        if (string.IsNullOrWhiteSpace(email))
             return new Response<string>(HttpStatusCode.BadRequest, "Email is required.");
 
-        if (resetPasswordDto.NewPassword.Length < 4 || resetPasswordDto.ConfirmPassword.Length < 4)
+        if (dto.NewPassword.Length < 4 || dto.ConfirmPassword.Length < 4)
             return new Response<string>(HttpStatusCode.BadRequest, $"Password has to be 4 characters or more!");
 
-        if (!Regex.IsMatch(resetPasswordDto.NewPassword, @"^[a-zA-Z0-9]+$"))
+        if (!Regex.IsMatch(dto.NewPassword, @"^[a-zA-Z0-9]+$"))
             return new Response<string>(HttpStatusCode.BadRequest, "Password must contain only letters and digits");
 
-        if (resetPasswordDto.NewPassword != resetPasswordDto.ConfirmPassword)
+        if (dto.NewPassword != dto.ConfirmPassword)
             return new Response<string>(HttpStatusCode.BadRequest, $"Passwords don't match!");
 
-        var user = await userRepository.FirstOrDefaultAsync(c => c.Email.ToLower() == resetPasswordDto.Email);
-        if (user == null)
+        // 1. Поиск в таблице User
+        var user = await userRepository.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+        if (user != null)
         {
-            return new Response<string>(HttpStatusCode.BadRequest, "Invalid token or email.");
+            if (string.IsNullOrEmpty(user.ResetToken) || user.ResetTokenExpiry is null ||
+                user.ResetToken != dto.Token || user.ResetTokenExpiry < DateTime.UtcNow)
+                return new Response<string>(HttpStatusCode.BadRequest, "Invalid or expired token.");
+
+            user.PasswordHash = passwordHasherUser.HashPassword(user, dto.NewPassword);
+            user.ResetToken = null;
+            user.ResetTokenExpiry = null;
+            userRepository.Update(user);
+            await userRepository.SaveChangesAsync();
+
+            return new Response<string>("Password has been reset successfully.");
         }
 
-        if (string.IsNullOrEmpty(user.ResetToken) || 
-            user.ResetTokenExpiry is null || 
-            user.ResetToken != resetPasswordDto.Token || 
-            user.ResetTokenExpiry < DateTime.UtcNow)
+        // 2. Поиск в таблице Doctor
+        var doctor = await doctorRepository.FirstOrDefaultAsync(d => d.Email.ToLower() == email);
+        if (doctor != null)
         {
-            return new Response<string>(HttpStatusCode.BadRequest, "Invalid or expired token.");
+            if (string.IsNullOrEmpty(doctor.ResetToken) || doctor.ResetTokenExpiry is null ||
+                doctor.ResetToken != dto.Token || doctor.ResetTokenExpiry < DateTime.UtcNow)
+                return new Response<string>(HttpStatusCode.BadRequest, "Invalid or expired token.");
+
+            doctor.PasswordHash = passwordHasherDoctor.HashPassword(doctor, dto.NewPassword);
+            doctor.ResetToken = null;
+            doctor.ResetTokenExpiry = null;
+            doctorRepository.Update(doctor);
+            await doctorRepository.SaveChangesAsync();
+
+            return new Response<string>("Password has been reset successfully.");
         }
 
-        user.PasswordHash = passwordHasher.HashPassword(user, resetPasswordDto.NewPassword);
-
-        user.ResetToken = null;
-        user.ResetTokenExpiry = null;
-
-        userRepository.Update(user);
-        await userRepository.SaveChangesAsync();
-
-        return new Response<string>("Password has been reset successfully.");
+        return new Response<string>(HttpStatusCode.BadRequest, "Invalid token or email.");
     }
 
     private string GenerateJwt(User user)
@@ -269,6 +310,29 @@ public class AuthService(
         {
             claims.Add(new Claim(ClaimTypes.Role, user.Role));
         }
+
+        var token = new JwtSecurityToken(
+            issuer: config["Jwt:Issuer"],
+            audience: config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(2),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
+    private string GenerateJwt(Doctor doctor)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, doctor.Id.ToString()),
+            new Claim(ClaimTypes.Email, doctor.Email),
+            new Claim(ClaimTypes.Role, Roles.Doctor)
+        };
 
         var token = new JwtSecurityToken(
             issuer: config["Jwt:Issuer"],

@@ -15,10 +15,15 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBaseRepository<User, int>, UserRepository>();
 
+        services.AddScoped<DoctorRepository>();
+        services.AddScoped<IDoctorService, DoctorService>();
+        services.AddScoped<IBaseRepository<Doctor, int>, DoctorRepository>();
+
         services.AddScoped(typeof(IAuthRepository<>), typeof(AuthRepository<>));
         services.AddScoped<IAuthService, AuthService>();
         
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<IPasswordHasher<Doctor>, PasswordHasher<Doctor>>();
     }
 }

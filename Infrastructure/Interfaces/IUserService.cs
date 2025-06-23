@@ -13,7 +13,7 @@ public interface IUserService
     Task<Response<string>> DeleteSelfAsync(ClaimsPrincipal userClaims);
     Task<Response<GetUserDTO>> GetByIdAsync(int userId);
     Task<Response<GetUserDTO>> GetCurrentUserAsync(ClaimsPrincipal userClaims);
-    Task<PagedResponse<List<GetUserDTO>>> GetAllAsync(UserFilter filter);
-    Task<Response<GetUserDTO>> RestoreAsync(RestoreUserDTO restoreUser);
+    Task<Response<List<GetUserDTO>>> GetAllAsync(UserFilter filter);
+    Task<Response<string>> RestoreAsync(RestoreUserDTO restoreUser);
     Task<Response<GetUserDTO>> ChangeUserRoleAsync(ChangeUserRoleDTO changeUserRole);
 }
