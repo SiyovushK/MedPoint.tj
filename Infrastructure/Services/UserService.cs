@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Domain.DTOs.EmailDTOs;
 using Domain.DTOs.UserDTOs;
 using Domain.Entities;
@@ -18,8 +19,10 @@ namespace Infrastructure.Services;
 public class UserService(
         IBaseRepository<User, int> repository,
         UserRepository userRepository,
+        DoctorRepository doctorRepository,
         IMapper mapper,
         IPasswordHasher<User> passwordHasher,
+        IPasswordHasher<Doctor> passwordHasherDoctor,
         IEmailService emailService) : IUserService
 {
     EmailVerification emailVerification = new();
@@ -276,22 +279,17 @@ public class UserService(
         return new Response<GetUserDTO>(getUserDto);
     }
 
-    public async Task<PagedResponse<List<GetUserDTO>>> GetAllAsync(UserFilter filter)
+    public async Task<Response<List<GetUserDTO>>> GetAllAsync(UserFilter filter)
     {
-        var pageNumber = filter.PageNumber;
-        var pageSize = filter.PageSize;
-        PaginationHelper.Normalize(ref pageNumber, ref pageSize);
-
         var query = repository.GetAll();
 
-        if (filter.Id.HasValue)
-            query = query.Where(u => u.Id == filter.Id.Value);
-
-        if (!string.IsNullOrWhiteSpace(filter.FirstName))
-            query = query.Where(u => u.FirstName.ToLower().Contains(filter.FirstName.ToLower()));
-
-        if (!string.IsNullOrWhiteSpace(filter.LastName))
-            query = query.Where(u => u.LastName.ToLower().Contains(filter.LastName.ToLower()));
+        if (!string.IsNullOrWhiteSpace(filter.Name))
+        {
+            var search = filter.Name.ToLower();
+            query = query.Where(d =>
+                d.FirstName.ToLower().Contains(search) ||
+                d.LastName.ToLower().Contains(search));
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.Phone))
             query = query.Where(u => u.Phone.Contains(filter.Phone));
@@ -308,64 +306,89 @@ public class UserService(
         if (filter.IsEmailVerified.HasValue)
             query = query.Where(u => u.IsEmailVerified == filter.IsEmailVerified.Value);
 
-        var totalRecords = await query.CountAsync();
-        if (totalRecords == 0)
-            return new PagedResponse<List<GetUserDTO>>(HttpStatusCode.NotFound, "No matched users");
-
-        var pagedUsers = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+        var users = await query.ToListAsync();
+        var getUsersDto = await query
+            .ProjectTo<GetUserDTO>(mapper.ConfigurationProvider)
             .ToListAsync();
 
-        var getUsersDto = mapper.Map<List<GetUserDTO>>(pagedUsers);
-
-        return new PagedResponse<List<GetUserDTO>>(getUsersDto, pageSize, pageNumber, totalRecords);
+        return new Response<List<GetUserDTO>>(getUsersDto);
     }
 
-    public async Task<Response<GetUserDTO>> RestoreAsync(RestoreUserDTO restoreUser)
+    public async Task<Response<string>> RestoreAsync(RestoreUserDTO restoreUser)
     {
-        restoreUser.Email = restoreUser.Email.Trim();
+        restoreUser.Email = restoreUser.Email.Trim().ToLower();
 
         if (string.IsNullOrWhiteSpace(restoreUser.Email) || string.IsNullOrWhiteSpace(restoreUser.Password))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email and password are required");
+            return new Response<string>(HttpStatusCode.BadRequest, "Email and password are required");
 
         try
         {
             var addr = new System.Net.Mail.MailAddress(restoreUser.Email);
             if (addr.Address != restoreUser.Email)
-                return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");
+                return new Response<string>(HttpStatusCode.BadRequest, "Email format is invalid");
         }
         catch
         {
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");
+            return new Response<string>(HttpStatusCode.BadRequest, "Email format is invalid");
         }
 
+        // User
         var user = await userRepository.GetByEmailAsync(restoreUser.Email);
-        if (user is null)
-            return new Response<GetUserDTO>(HttpStatusCode.NotFound, "Invalid email or password");
-
-        if (!user.IsDeleted)
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "User is already active");
-
-        var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, restoreUser.Password);
-        if (result == PasswordVerificationResult.Failed)
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Invalid email or password");
-
-        user.IsDeleted = false;
-
-        var updateResult = await repository.UpdateAsync(user);
-        if (updateResult == 0)
-            return new Response<GetUserDTO>(HttpStatusCode.InternalServerError, "Failed to restore user");
-
-        await emailService.SendEmailAsync(new EmailDTO
+        if (user != null)
         {
-            To = user.Email,
-            Subject = "Account Restored",
-            Body = $"Hi {user.FirstName}, your account has been successfully restored!"
-        });
+            var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, restoreUser.Password);
+            if (result == PasswordVerificationResult.Failed)
+                return new Response<string>(HttpStatusCode.BadRequest, "Invalid email or password");
 
-        var getUserDto = mapper.Map<GetUserDTO>(user);
-        return new Response<GetUserDTO>(getUserDto);
+            if (!user.IsDeleted)
+                return new Response<string>(HttpStatusCode.BadRequest, "User is already active");
+
+            user.IsDeleted = false;
+
+            var updateResult = await repository.UpdateAsync(user);
+            if (updateResult == 0)
+                return new Response<string>(HttpStatusCode.InternalServerError, "Failed to restore user");
+
+            await emailService.SendEmailAsync(new EmailDTO
+            {
+                To = user.Email,
+                Subject = "Account Restored",
+                Body = $"Hi {user.FirstName}, your account has been successfully restored!"
+            });
+
+            var getUserDto = mapper.Map<GetUserDTO>(user);
+
+            return new Response<string>("Account restored successfully");
+        }
+
+        // Doctor
+        var doctor = await doctorRepository.GetByEmailAsync(restoreUser.Email);
+        if (doctor != null)
+        {
+            var result = passwordHasherDoctor.VerifyHashedPassword(doctor, doctor.PasswordHash, restoreUser.Password);
+            if (result == PasswordVerificationResult.Failed)
+                return new Response<string>(HttpStatusCode.BadRequest, "Invalid email or password");
+
+            if (!doctor.IsDeleted)
+                return new Response<string>(HttpStatusCode.BadRequest, "Doctor is already active");
+
+            doctor.IsDeleted = false;
+
+            var updateResult = await doctorRepository.UpdateAsync(doctor);
+            if (updateResult == 0)
+                return new Response<string>(HttpStatusCode.InternalServerError, "Failed to restore doctor");
+
+            await emailService.SendEmailAsync(new EmailDTO
+            {
+                To = doctor.Email,
+                Subject = "Account Restored",
+                Body = $"Hi {doctor.FirstName}, your doctor account has been successfully restored!"
+            });
+
+            return new Response<string>("Doctor account restored successfully");
+        }
+
+        return new Response<string>(HttpStatusCode.NotFound, "Invalid email or password");
     }
 
     public async Task<Response<GetUserDTO>> ChangeUserRoleAsync(ChangeUserRoleDTO dto)

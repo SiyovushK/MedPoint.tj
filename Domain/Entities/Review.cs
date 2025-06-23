@@ -8,6 +8,8 @@ public class Review
     public int Rating { get; set; }
     public string Comment { get; set; } = string.Empty;
 
+    public bool IsHidden { get; set; } = false;
+
     public Doctor Doctor { get; set; } = null!;
     public User User { get; set; } = null!;
 }

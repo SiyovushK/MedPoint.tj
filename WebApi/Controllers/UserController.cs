@@ -62,7 +62,7 @@ public class UserController(IUserService userService) : ControllerBase
 
     [HttpGet("All")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<PagedResponse<List<GetUserDTO>>>> GetAllAsync([FromQuery] UserFilter filter)
+    public async Task<ActionResult<Response<List<GetUserDTO>>>> GetAllAsync([FromQuery] UserFilter filter)
     {
         var response = await userService.GetAllAsync(filter);
         return StatusCode((int)response.StatusCode, response);
