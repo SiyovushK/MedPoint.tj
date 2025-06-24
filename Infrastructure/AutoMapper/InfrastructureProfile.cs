@@ -27,19 +27,25 @@ public class InfrastructureProfile : Profile
             .ForMember(dest => dest.ResetToken, opt => opt.Ignore())
             .ForMember(dest => dest.ResetTokenExpiry, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-        CreateMap<User, GetUserDTO>();
+        CreateMap<User, GetUserDTO>()
+            .ForMember(dest => dest.ProfileImageUrl, opt => opt.Ignore());
 
         CreateMap<CreateDoctorDTO, Doctor>()
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
             .ForMember(dest => dest.Orders, opt => opt.Ignore())
             .ForMember(dest => dest.Reviews, opt => opt.Ignore())
-            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+            .ForMember(dest => dest.ResetToken, opt => opt.Ignore())
+            .ForMember(dest => dest.ResetTokenExpiry, opt => opt.Ignore());
         CreateMap<UpdateDoctorDTO, Doctor>()
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
             .ForMember(dest => dest.Orders, opt => opt.Ignore())
             .ForMember(dest => dest.Reviews, opt => opt.Ignore())
             .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+            .ForMember(dest => dest.ResetToken, opt => opt.Ignore())
+            .ForMember(dest => dest.ResetTokenExpiry, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-        CreateMap<Doctor, GetDoctorDTO>();
+        CreateMap<Doctor, GetDoctorDTO>()
+            .ForMember(dest => dest.ProfileImageUrl, opt => opt.Ignore());
     }
 }

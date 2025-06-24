@@ -17,6 +17,13 @@ public class AuthController(IAuthService _authService) : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
+    [HttpPost("resend-verification-code")]
+    public async Task<IActionResult> ResendVerificationCode([FromBody] string email)
+    {
+        var response = await _authService.ResendVerificationCodeAsync(email);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
     [HttpPost("verify-email")]
     public async Task<ActionResult<Response<string>>> VerifyEmail([FromBody] VerifyEmailDTO dto)
     {
