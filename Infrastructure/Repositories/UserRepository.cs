@@ -42,7 +42,8 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await context.Users.FirstOrDefaultAsync(u => EF.Functions.ILike(u.Email, email));
+        var emailLower = email.ToLower();
+        return await context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
     }
 
     public async Task<int> MarkUserAsDeleted(int id)
