@@ -42,7 +42,8 @@ public class DoctorRepository(DataContext context) : IBaseRepository<Doctor, int
 
     public async Task<Doctor?> GetByEmailAsync(string email)
     {
-        return await context.Doctors.FirstOrDefaultAsync(u => EF.Functions.ILike(u.Email, email));
+        var emailLower = email.ToLower();
+        return await context.Doctors.FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
     }
 
     public async Task<int> MarkDoctorAsDeleted(int id)
