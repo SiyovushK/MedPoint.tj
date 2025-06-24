@@ -14,8 +14,8 @@ builder.Services.AddAutoMapper(typeof(InfrastructureProfile));
 builder.Services.AddInfrastructure();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddAuthenticationConfiguration(builder.Configuration);
-builder.Services.AddDbContext<DataContext>(opt =>
-    opt.UseNpgsql(connection));
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseSqlite(connection));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthorization();

@@ -215,7 +215,7 @@ public class UserService(
         if (user == null)
             return new Response<string>(HttpStatusCode.NotFound, $"User with id {userId} is not found");
 
-        if (await userRepository.MarkUserAsDeleted(userId) == 0)
+        if (await userRepository.DeleteAsync(user) == 0)
             return new Response<string>(HttpStatusCode.InternalServerError, "User couldn't be deleted");
 
         var emailDto = new EmailDTO

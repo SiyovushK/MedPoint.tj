@@ -21,9 +21,10 @@ public static class SeederConfiguration
         {
             var context = provider.GetRequiredService<DataContext>();
             var passwordHasher = provider.GetRequiredService<IPasswordHasher<User>>();
+            var passwordHasherDoctor = provider.GetRequiredService<IPasswordHasher<Doctor>>();
 
             await context.Database.MigrateAsync();
-            await DefaultUser.SeedAsync(context, passwordHasher);
+            await DefaultUser.SeedAsync(context, passwordHasher, passwordHasherDoctor);
         }
         catch (Exception ex)
         {
