@@ -19,6 +19,7 @@ public class Doctor
 
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
+    public string? ProfileImagePath { get; set; }
 
     [Required]
     public DoctorSpecialization[] Specialization { get; set; } = [];

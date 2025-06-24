@@ -11,6 +11,7 @@ using Domain.Responses;
 using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Infrastructure.Services.HelperServices;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,8 @@ public class UserService(
         IMapper mapper,
         IPasswordHasher<User> passwordHasher,
         IPasswordHasher<Doctor> passwordHasherDoctor,
-        IEmailService emailService) : IUserService
+        IEmailService emailService,
+        IHttpContextAccessor httpContextAccessor) : IUserService
 {
     EmailVerification emailVerification = new();
 
@@ -80,7 +82,7 @@ public class UserService(
         if (!emailVerification.EmailVerificationMethod(createUser.Email))
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email must be from gmail.com or mail.ru");
 
-        var emailCheck = await userRepository.GetByEmailAsync(createUser.Email.ToLower());
+        var emailCheck = await userRepository.GetByEmailAsync(createUser.Email);
         if (emailCheck != null)
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "User with this email is alredy registered");
 
@@ -259,6 +261,13 @@ public class UserService(
             return new Response<GetUserDTO>(HttpStatusCode.NotFound, $"User with id {userId} is not found");
 
         var getUserDto = mapper.Map<GetUserDTO>(user);
+
+        var request = httpContextAccessor.HttpContext?.Request;
+        if (!string.IsNullOrEmpty(user.ProfileImagePath) && request != null)
+        {
+            getUserDto.ProfileImageUrl = $"{request.Scheme}://{request.Host}{user.ProfileImagePath}";
+        }
+
         return new Response<GetUserDTO>(getUserDto);
     }
 
@@ -276,6 +285,13 @@ public class UserService(
             return new Response<GetUserDTO>(HttpStatusCode.NotFound, "User not found");
 
         var getUserDto = mapper.Map<GetUserDTO>(user);
+
+        var request = httpContextAccessor.HttpContext?.Request;
+        if (!string.IsNullOrEmpty(user.ProfileImagePath) && request != null)
+        {
+            getUserDto.ProfileImageUrl = $"{request.Scheme}://{request.Host}{user.ProfileImagePath}";
+        }
+        
         return new Response<GetUserDTO>(getUserDto);
     }
 
@@ -307,9 +323,22 @@ public class UserService(
             query = query.Where(u => u.IsEmailVerified == filter.IsEmailVerified.Value);
 
         var users = await query.ToListAsync();
-        var getUsersDto = await query
-            .ProjectTo<GetUserDTO>(mapper.ConfigurationProvider)
-            .ToListAsync();
+        var getUsersDto = mapper.Map<List<GetUserDTO>>(users);
+
+        var request = httpContextAccessor.HttpContext?.Request;
+        if (request != null)
+        {
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+
+            foreach (var dto in getUsersDto)
+            {
+                var user = users.FirstOrDefault(u => u.Id == dto.Id);
+                if (user != null && !string.IsNullOrEmpty(user.ProfileImagePath))
+                {
+                    dto.ProfileImageUrl = $"{baseUrl}{user.ProfileImagePath}";
+                }
+            }
+        }
 
         return new Response<List<GetUserDTO>>(getUsersDto);
     }
@@ -419,6 +448,69 @@ public class UserService(
 
         var result = mapper.Map<GetUserDTO>(user);
         return new Response<GetUserDTO>(result);
+    }
+
+    public async Task<Response<string>> UploadOrUpdateProfileImageAsync(int userId, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return new Response<string>(HttpStatusCode.BadRequest, "File is empty or missing.");
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        if (!allowedExtensions.Contains(extension))
+            return new Response<string>(HttpStatusCode.BadRequest, "Only image files (.jpg, .jpeg, .png, .gif) are allowed.");
+
+        if (file.Length > 10 * 1024 * 1024)
+            return new Response<string>(HttpStatusCode.BadRequest, "File size cannot exceed 10MB.");
+
+        var user = await userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return new Response<string>(HttpStatusCode.NotFound, $"User with ID {userId} not found.");
+
+        // Deleting old image
+        if (!string.IsNullOrEmpty(user.ProfileImagePath))
+        {
+            var oldFilePath = Path.Combine("wwwroot", user.ProfileImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+            if (File.Exists(oldFilePath))
+                File.Delete(oldFilePath);
+        }
+
+        var folderPath = Path.Combine("wwwroot", "profile-images", "users");
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        var fileName = $"{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(folderPath, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        user.ProfileImagePath = $"/profile-images/users/{fileName}";
+        await userRepository.UpdateAsync(user);
+
+        return new Response<string>("Profile image uploaded successfully.");
+    }
+
+    public async Task<Response<string>> DeleteProfileImageAsync(int userId)
+    {
+        var user = await userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return new Response<string>(HttpStatusCode.NotFound, "User not found.");
+
+        if (string.IsNullOrEmpty(user.ProfileImagePath))
+            return new Response<string>(HttpStatusCode.BadRequest, "No profile image to delete.");
+
+        var filePath = Path.Combine("wwwroot", "images", "users", user.ProfileImagePath);
+        if (File.Exists(filePath))
+            File.Delete(filePath);
+
+        user.ProfileImagePath = null;
+        await userRepository.UpdateAsync(user);
+
+        return new Response<string>("Profile image deleted successfully.");
     }
 
 }
