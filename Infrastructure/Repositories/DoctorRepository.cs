@@ -52,4 +52,9 @@ public class DoctorRepository(DataContext context) : IBaseRepository<Doctor, int
         context.Doctors.Update(Doctor);
         return await context.SaveChangesAsync();
     }
+    
+    public async Task<int> SaveChangesAsync()
+    {
+        return await context.SaveChangesAsync();
+    }
 }

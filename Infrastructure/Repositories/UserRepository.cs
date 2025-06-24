@@ -53,4 +53,9 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
         return await context.SaveChangesAsync();
     }
 
+    public async Task<int> SaveChangesAsync()
+    {
+        return await context.SaveChangesAsync();
+    }
+
 }  

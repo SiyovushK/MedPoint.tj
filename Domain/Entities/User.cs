@@ -20,6 +20,8 @@ public class User
     [Required]
     public string Role { get; set; } = Roles.User;
 
+    public string? ProfileImagePath { get; set; }
+    
     public bool IsDeleted { get; set; } = false;
     public bool IsEmailVerified { get; set; } = false;
 

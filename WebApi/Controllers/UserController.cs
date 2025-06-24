@@ -2,6 +2,7 @@ using Domain.Constants;
 using Domain.DTOs.UserDTOs;
 using Domain.Filters;
 using Domain.Responses;
+using Infrastructure.Data.ProfileImage;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -81,5 +82,19 @@ public class UserController(IUserService userService) : ControllerBase
     {
         var response = await userService.ChangeUserRoleAsync(dto);
         return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost("{userId}/upload-or-update-profile-image")]
+    public async Task<IActionResult> UploadProfileImage(int userId, IFormFile file)
+    {
+        var result = await userService.UploadOrUpdateProfileImageAsync(userId, file);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [HttpDelete("{userId}/delete-profile-image")]
+    public async Task<IActionResult> DeleteProfileImage(int userId)
+    {
+        var result = await userService.DeleteProfileImageAsync(userId);
+        return StatusCode((int)result.StatusCode, result);
     }
 }

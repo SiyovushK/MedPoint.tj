@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Domain.Constants;
@@ -93,9 +94,9 @@ public class AuthService(
         if (!Regex.IsMatch(registerDto.Password, @"^[a-zA-Z0-9]+$"))
             return new Response<string>(HttpStatusCode.BadRequest, "Password must only contain letters and digits! (no symbols or spaces)");
 
-        var code = new Random().Next(100000, 999999).ToString();
+        var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 
-        var user = new User
+        var newUser = new User
         {
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
@@ -106,27 +107,25 @@ public class AuthService(
             ResetTokenExpiry = DateTime.UtcNow.AddMinutes(10),
         };
 
-        user.PasswordHash = passwordHasherUser.HashPassword(user, registerDto.Password);
+        newUser.PasswordHash = passwordHasherUser.HashPassword(newUser, registerDto.Password);
 
-        await userRepository.AddAsync(user);
+        await userRepository.AddAsync(newUser);
         await userRepository.SaveChangesAsync();
 
-        var emailDto = new EmailDTO
+        await emailService.SendEmailAsync(new EmailDTO
         {
-            To = user.Email,
+            To = newUser.Email,
             Subject = "Registration Confirmation Code",
-            Body = $"Hello {user.FirstName},\n\nYour confirmation code is: {code}"
-        };
+            Body = $"Hello {newUser.FirstName},\n\nYour confirmation code is: {code}"
+        });
 
-        await emailService.SendEmailAsync(emailDto);
-
-        return new Response<string>("Verification code sent to email");
+        return new Response<string>("Verification code sent to email.");
     }
 
     public async Task<Response<string>> VerifyRegistrationCode(VerifyEmailDTO dto)
     {
         var user = await userRepository.FirstOrDefaultAsync(u =>
-            u.Email.ToLower() == dto.Email.ToLower() &&
+            u.Email.ToLower() == dto.Email.Trim().ToLower() &&
             u.ResetToken == dto.Code);
 
         if (user == null)
@@ -143,6 +142,38 @@ public class AuthService(
         await userRepository.SaveChangesAsync();
 
         return new Response<string>("Email verified. Registration completed.");
+    }
+
+    public async Task<Response<string>> ResendVerificationCodeAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return new Response<string>(HttpStatusCode.BadRequest, "Email is required.");
+
+        var existingUser = await userRepository.FirstOrDefaultAsync(u =>
+            u.Email.ToLower() == email.Trim().ToLower());
+
+        if (existingUser == null)
+            return new Response<string>(HttpStatusCode.NotFound, "User with this email does not exist.");
+
+        if (existingUser.IsEmailVerified)
+            return new Response<string>(HttpStatusCode.BadRequest, "This user is already verified.");
+
+        var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+
+        existingUser.ResetToken = code;
+        existingUser.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        userRepository.Update(existingUser);
+        await userRepository.SaveChangesAsync();
+
+        await emailService.SendEmailAsync(new EmailDTO
+        {
+            To = existingUser.Email,
+            Subject = "New Verification Code",
+            Body = $"Hello {existingUser.FirstName},\n\nYour new verification code is: {code}"
+        });
+
+        return new Response<string>("New verification code sent to your email.");
     }
 
     public async Task<Response<TokenDTO>> Login(LoginDTO loginDto)
