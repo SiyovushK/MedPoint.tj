@@ -5,6 +5,9 @@ using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// builder.WebHost.UseUrls("http://147.45.146.15:5063");
+
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
