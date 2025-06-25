@@ -192,12 +192,6 @@ public class AuthService(
                 return new Response<TokenDTO>(HttpStatusCode.Forbidden, "Email is not verified yet.");
 
             var token = GenerateJwt(user);
-            await emailService.SendEmailAsync(new EmailDTO
-            {
-                To = user.Email,
-                Subject = "Login Info",
-                Body = $"Hi {user.FirstName}! You have logged in successfully."
-            });
 
             return new Response<TokenDTO>(new TokenDTO { Token = token });
         }
@@ -211,12 +205,6 @@ public class AuthService(
                 return new Response<TokenDTO>(HttpStatusCode.BadRequest, "Incorrect email or password");
 
             var token = GenerateJwt(doctor);
-            await emailService.SendEmailAsync(new EmailDTO
-            {
-                To = doctor.Email,
-                Subject = "Login Info",
-                Body = $"Hi {doctor.FirstName}! You have logged in successfully."
-            });
 
             return new Response<TokenDTO>(new TokenDTO { Token = token });
         }
