@@ -7,7 +7,7 @@ public class DoctorFilter
     public string? Name { get; set; }
     public string? Email { get; set; }
 
-    public DoctorSpecialization[]? Specializations { get; set; }
+    public DoctorSpecialization[]? Specialization { get; set; }
 
     public bool? IsActive { get; set; }
     public bool? IsDeleted { get; set; }
