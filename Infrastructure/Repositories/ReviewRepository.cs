@@ -1,0 +1,37 @@
+using Domain.Entities;
+using Infrastructure.Data;
+using Infrastructure.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace Infrastructure.Repositories;
+
+public class ReviewRepository(DataContext context) : IBaseRepository<Review, int>
+{
+    public async Task<int> AddAsync(Review entity)
+    {
+        await context.Reviews.AddAsync(entity);
+        return await context.SaveChangesAsync();
+    }
+
+    public async Task<int> UpdateAsync(Review entity)
+    {
+        context.Reviews.Update(entity);
+        return await context.SaveChangesAsync();
+    }
+
+    public async Task<int> DeleteAsync(Review entity)
+    {
+        context.Reviews.Remove(entity);
+        return await context.SaveChangesAsync();
+    }
+
+    public IQueryable<Review> GetAll()
+    {
+        return context.Reviews.AsQueryable();
+    }
+
+    public async Task<Review?> GetByIdAsync(int id)
+    {
+        return await context.Reviews.FirstOrDefaultAsync(u => u.Id == id);
+    }   
+} 

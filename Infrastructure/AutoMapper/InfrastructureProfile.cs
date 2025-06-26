@@ -1,5 +1,7 @@
 using AutoMapper;
 using Domain.DTOs.DoctorDTOs;
+using Domain.DTOs.OrderDTOs;
+using Domain.DTOs.ReviewDTOs;
 using Domain.DTOs.UserDTOs;
 using Domain.Entities;
 
@@ -47,5 +49,17 @@ public class InfrastructureProfile : Profile
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<Doctor, GetDoctorDTO>()
             .ForMember(dest => dest.ProfileImageUrl, opt => opt.Ignore());
+
+        CreateMap<CreateOrderDTO, Order>();
+        CreateMap<UpdateOrderDTO, Order>()
+            .ForMember(dest => dest.DoctorId, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore());
+        CreateMap<Order, GetOrderDTO>();
+
+        CreateMap<CreateReviewDTO, Review>();
+        CreateMap<UpdateReviewDTO, Review>()
+            .ForMember(dest => dest.Doctor, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
+        CreateMap<Review, GetReviewDTO>();
     }
 }

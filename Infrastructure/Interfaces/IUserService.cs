@@ -17,6 +17,6 @@ public interface IUserService
     Task<Response<List<GetUserDTO>>> GetAllAsync(UserFilter filter);
     Task<Response<string>> RestoreAsync(RestoreUserDTO restoreUser);
     Task<Response<GetUserDTO>> ChangeUserRoleAsync(ChangeUserRoleDTO changeUserRole);
-    Task<Response<string>> UploadOrUpdateProfileImageAsync(int userId, IFormFile file);
-    Task<Response<string>> DeleteProfileImageAsync(int userId);
+    Task<Response<string>> UploadOrUpdateProfileImageAsync(ClaimsPrincipal userClaims, IFormFile file);
+    Task<Response<string>> DeleteProfileImageAsync(ClaimsPrincipal userClaims);
 }

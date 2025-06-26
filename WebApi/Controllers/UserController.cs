@@ -2,7 +2,6 @@ using Domain.Constants;
 using Domain.DTOs.UserDTOs;
 using Domain.Filters;
 using Domain.Responses;
-using Infrastructure.Data.ProfileImage;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,24 +12,24 @@ namespace WebApi.Controllers;
 [Route("api/[controller]")]
 public class UserController(IUserService userService) : ControllerBase
 {
-    [HttpPost]
-    [Authorize(Roles = Roles.Admin)]
+    [HttpPost("Create")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> CreateAsync(CreateUserDTO createUser)
     {
         var response = await userService.CreateAsync(createUser);
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpPut]
-    [Authorize]
+    [HttpPut("Update")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> UpdateAsync(int id, UpdateUserDTO updateUser)
     {
         var response = await userService.UpdateAsync(id, updateUser);
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpDelete]
-    [Authorize(Roles = Roles.Admin)]
+    [HttpDelete("Delete")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<string>>> DeleteAsync(int userId)
     {
         var response = await userService.DeleteAsync(userId);
@@ -38,7 +37,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpDelete("DeleteSelf")]
-    [Authorize]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<string>>> DeleteSelfAsync()
     {
         var response = await userService.DeleteSelfAsync(User);
@@ -46,7 +45,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("CurrentUser")]
-    [Authorize]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> GetCurrentUserAsync()
     {
         var response = await userService.GetCurrentUserAsync(User);
@@ -54,7 +53,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("ById")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> GetByIdAsync(int userId)
     {
         var response = await userService.GetByIdAsync(userId);
@@ -62,7 +61,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("All")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<List<GetUserDTO>>>> GetAllAsync([FromQuery] UserFilter filter)
     {
         var response = await userService.GetAllAsync(filter);
@@ -77,24 +76,26 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpPut("ChangeRole")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> ChangeUserRoleAsync(ChangeUserRoleDTO dto)
     {
         var response = await userService.ChangeUserRoleAsync(dto);
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpPost("{userId}/upload-or-update-profile-image")]
-    public async Task<IActionResult> UploadProfileImage(int userId, IFormFile file)
+    [HttpPost("upload-or-update-profile-image")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<string>>> UploadOrUpdateProfileImageAsync(IFormFile file)
     {
-        var result = await userService.UploadOrUpdateProfileImageAsync(userId, file);
+        var result = await userService.UploadOrUpdateProfileImageAsync(User, file);
         return StatusCode((int)result.StatusCode, result);
     }
 
-    [HttpDelete("{userId}/delete-profile-image")]
-    public async Task<IActionResult> DeleteProfileImage(int userId)
+    [HttpDelete("delete-profile-image")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<string>>> DeleteProfileImageAsync()
     {
-        var result = await userService.DeleteProfileImageAsync(userId);
+        var result = await userService.DeleteProfileImageAsync(User);
         return StatusCode((int)result.StatusCode, result);
     }
 }
