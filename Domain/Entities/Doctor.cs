@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Domain.Constants;
 using Domain.Enums;
 
 namespace Domain.Entities;
@@ -16,6 +17,7 @@ public class Doctor
     public string Email { get; set; } = string.Empty;
     [StringLength(500)]
     public string Description { get; set; } = string.Empty;
+    public string Role { get; set; } = Roles.Doctor;
 
     [Required]
     public string PasswordHash { get; set; } = string.Empty;

@@ -2,7 +2,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Domain.DTOs.EmailDTOs;
 using Domain.DTOs.UserDTOs;
 using Domain.Entities;
@@ -80,7 +79,7 @@ public class UserService(
         }
 
         if (!emailVerification.EmailVerificationMethod(createUser.Email))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email must be from gmail.com or mail.ru");
+            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email domen is invalid");
 
         var emailCheck = await userRepository.GetByEmailAsync(createUser.Email);
         if (emailCheck != null)
@@ -181,7 +180,7 @@ public class UserService(
         }
 
         if (!emailVerification.EmailVerificationMethod(updateUser.Email))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email must be from gmail.com or mail.ru");
+            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email domen is invalid.");
 
         if (!string.Equals(updateUser.Email, checkUser.Email, StringComparison.OrdinalIgnoreCase))
         {
@@ -450,7 +449,7 @@ public class UserService(
         return new Response<GetUserDTO>(result);
     }
 
-    public async Task<Response<string>> UploadOrUpdateProfileImageAsync(int userId, IFormFile file)
+    public async Task<Response<string>> UploadOrUpdateProfileImageAsync(ClaimsPrincipal userClaims, IFormFile file)
     {
         if (file == null || file.Length == 0)
             return new Response<string>(HttpStatusCode.BadRequest, "File is empty or missing.");
@@ -464,8 +463,13 @@ public class UserService(
         if (file.Length > 10 * 1024 * 1024)
             return new Response<string>(HttpStatusCode.BadRequest, "File size cannot exceed 10MB.");
 
+        // Id from token
+        var userIdClaim = userClaims.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return new Response<string>(HttpStatusCode.Unauthorized, "User ID not found or invalid in token.");
+
         var user = await userRepository.GetByIdAsync(userId);
-        if (user == null)
+        if (user == null || user.IsDeleted)
             return new Response<string>(HttpStatusCode.NotFound, $"User with ID {userId} not found.");
 
         // Deleting old image
@@ -494,16 +498,20 @@ public class UserService(
         return new Response<string>("Profile image uploaded successfully.");
     }
 
-    public async Task<Response<string>> DeleteProfileImageAsync(int userId)
+    public async Task<Response<string>> DeleteProfileImageAsync(ClaimsPrincipal userClaims)
     {
+        var userIdClaim = userClaims.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return new Response<string>(HttpStatusCode.Unauthorized, "User ID not found or invalid in token.");
+
         var user = await userRepository.GetByIdAsync(userId);
-        if (user == null)
+        if (user == null || user.IsDeleted)
             return new Response<string>(HttpStatusCode.NotFound, "User not found.");
 
         if (string.IsNullOrEmpty(user.ProfileImagePath))
             return new Response<string>(HttpStatusCode.BadRequest, "No profile image to delete.");
 
-        var filePath = Path.Combine("wwwroot", "images", "users", user.ProfileImagePath);
+        var filePath = Path.Combine("wwwroot", user.ProfileImagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
         if (File.Exists(filePath))
             File.Delete(filePath);
 

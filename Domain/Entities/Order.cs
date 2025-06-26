@@ -12,7 +12,7 @@ public class Order
     public TimeOnly EndTime { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public OrderStatus OrderStatus { get; set; } = OrderStatus.Active;
+    public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
 
     public User User { get; set; } = null!;
     public Doctor Doctor { get; set; } = null!;
