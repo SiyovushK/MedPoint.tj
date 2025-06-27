@@ -12,7 +12,7 @@ namespace WebApi.Controllers;
 [Route("api/[controller]")]
 public class DoctorController(IDoctorService doctorService) : ControllerBase
 {
-    [HttpPost("Create")]
+    [HttpPost]
     [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<GetDoctorDTO>>> CreateAsync(CreateDoctorDTO createDoctor)
     {
@@ -20,7 +20,7 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    [HttpPut("Update")]
+    [HttpPut]
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetDoctorDTO>>> UpdateAsync(int id, UpdateDoctorDTO updateDoctor)
     {
@@ -28,7 +28,7 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    [HttpDelete("Delete")]
+    [HttpDelete]
     [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<string>>> DeleteAsync(int doctorId)
     {
