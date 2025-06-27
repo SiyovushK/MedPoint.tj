@@ -12,7 +12,7 @@ namespace WebApi.Controllers;
 [Route("api/[controller]")]
 public class UserController(IUserService userService) : ControllerBase
 {
-    [HttpPost("Create")]
+    [HttpPost]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> CreateAsync(CreateUserDTO createUser)
     {
@@ -20,7 +20,7 @@ public class UserController(IUserService userService) : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpPut("Update")]
+    [HttpPut]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> UpdateAsync(int id, UpdateUserDTO updateUser)
     {
@@ -28,7 +28,7 @@ public class UserController(IUserService userService) : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpDelete("Delete")]
+    [HttpDelete]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<string>>> DeleteAsync(int userId)
     {
