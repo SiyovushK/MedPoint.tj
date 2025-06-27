@@ -8,6 +8,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://147.45.146.15:5063");
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .SetIsOriginAllowed(_ => true)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
@@ -35,7 +47,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
