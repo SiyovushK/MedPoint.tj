@@ -11,10 +11,11 @@ public interface IDoctorService
     Task<Response<GetDoctorDTO>> CreateAsync(CreateDoctorDTO createDoctor);
     Task<Response<GetDoctorDTO>> UpdateAsync(int id, UpdateDoctorDTO updateDoctor);
     Task<Response<string>> DeleteAsync(int doctorId);
-    Task<Response<GetDoctorDTO>> ActivateOrDisableAsync(ClaimsPrincipal doctorClaims, ChangeDoctorActivityStatus doctorActivity);
+    Task<Response<GetDoctorDTO>> ActivateOrDisableAsync(ChangeDoctorActivityStatus doctorActivity);
     Task<Response<GetDoctorDTO>> GetByIdAsync(int doctorId);
     Task<Response<GetDoctorDTO>> GetCurrentDoctorAsync(ClaimsPrincipal doctorClaims);
     Task<Response<List<GetDoctorDTO>>> GetAllAsync(DoctorFilter filter);
     Task<Response<string>> UploadOrUpdateProfileImageAsync(ClaimsPrincipal doctorClaims, IFormFile file);
     Task<Response<string>> DeleteProfileImageAsync(ClaimsPrincipal doctorClaims);
+    Task<Response<List<SpecializationDTO>>> GetSpecializationsAsync();
 }

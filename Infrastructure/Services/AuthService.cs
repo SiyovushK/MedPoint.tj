@@ -334,7 +334,7 @@ public class AuthService(
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(24),
             signingCredentials: credentials
         );
 
@@ -357,7 +357,7 @@ public class AuthService(
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(24),
             signingCredentials: credentials
         );
 
