@@ -19,6 +19,10 @@ public static class DependencyInjection
         services.AddScoped<IDoctorService, DoctorService>();
         services.AddScoped<IBaseRepository<Doctor, int>, DoctorRepository>();
 
+        services.AddScoped<ReviewRepository>();
+        services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IBaseRepository<Review, int>, ReviewRepository>();
+
         services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         services.AddScoped<AdminDashboardRepository>();
 

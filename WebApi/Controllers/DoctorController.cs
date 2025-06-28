@@ -40,12 +40,12 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetDoctorDTO>>> ActivateOrDisableAsync(ChangeDoctorActivityStatus doctorActivity)
     {
-        var result = await doctorService.ActivateOrDisableAsync(User, doctorActivity);
+        var result = await doctorService.ActivateOrDisableAsync(doctorActivity);
         return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet("ById")]
-    [Authorize(Roles = Roles.Admin)]
+    [AllowAnonymous]
     public async Task<ActionResult<Response<GetDoctorDTO>>> GetByIdAsync(int doctorId)
     {
         var result = await doctorService.GetByIdAsync(doctorId);
@@ -53,7 +53,7 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
     }
 
     [HttpGet("CurrentDoctor")]
-    [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
+    [Authorize(Roles = Roles.Doctor)]
     public async Task<ActionResult<Response<GetDoctorDTO>>> GetCurrentDoctorAsync()
     {
         var result = await doctorService.GetCurrentDoctorAsync(User);
@@ -61,7 +61,7 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
     }
 
     [HttpGet("All")]
-    [Authorize(Roles = Roles.Admin)]
+    [AllowAnonymous]
     public async Task<ActionResult<Response<List<GetDoctorDTO>>>> GetAllAsync([FromQuery] DoctorFilter filter)
     {
         var result = await doctorService.GetAllAsync(filter);
@@ -81,6 +81,14 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
     public async Task<ActionResult<Response<string>>> DeleteProfileImageAsync()
     {
         var result = await doctorService.DeleteProfileImageAsync(User);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [HttpGet("specializations")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Response<List<SpecializationDTO>>>> GetSpecializations()
+    {
+        var result = await doctorService.GetSpecializationsAsync();
         return StatusCode((int)result.StatusCode, result);
     }
 }

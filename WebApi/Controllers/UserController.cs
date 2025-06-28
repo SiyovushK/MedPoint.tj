@@ -13,7 +13,7 @@ namespace WebApi.Controllers;
 public class UserController(IUserService userService) : ControllerBase
 {
     [HttpPost]
-    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<GetUserDTO>>> CreateAsync(CreateUserDTO createUser)
     {
         var response = await userService.CreateAsync(createUser);
@@ -29,7 +29,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpDelete]
-    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<string>>> DeleteAsync(int userId)
     {
         var response = await userService.DeleteAsync(userId);
@@ -53,7 +53,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("ById")]
-    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<GetUserDTO>>> GetByIdAsync(int userId)
     {
         var response = await userService.GetByIdAsync(userId);
@@ -61,7 +61,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("All")]
-    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<List<GetUserDTO>>>> GetAllAsync([FromQuery] UserFilter filter)
     {
         var response = await userService.GetAllAsync(filter);
@@ -69,6 +69,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpPost("RestoreAccount")]
+    [AllowAnonymous]
     public async Task<ActionResult<Response<GetUserDTO>>> RestoreAsync(RestoreUserDTO restoreUser)
     {
         var response = await userService.RestoreAsync(restoreUser);
@@ -76,7 +77,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpPut("ChangeRole")]
-    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<GetUserDTO>>> ChangeUserRoleAsync(ChangeUserRoleDTO dto)
     {
         var response = await userService.ChangeUserRoleAsync(dto);
