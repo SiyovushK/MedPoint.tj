@@ -5,6 +5,7 @@ using AutoMapper;
 using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.EmailDTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Filters;
 using Domain.Responses;
 using Infrastructure.Interfaces;
@@ -228,16 +229,9 @@ public class DoctorService(
         return new Response<string>("Doctor deleted successfully");
     }
 
-    public async Task<Response<GetDoctorDTO>> ActivateOrDisableAsync(ClaimsPrincipal doctorClaims, ChangeDoctorActivityStatus doctorActivity)
+    public async Task<Response<GetDoctorDTO>> ActivateOrDisableAsync(ChangeDoctorActivityStatus doctorActivity)
     {
-        var doctorIdClaim = doctorClaims.FindFirst(ClaimTypes.NameIdentifier);
-        if (doctorIdClaim == null)
-            return new Response<GetDoctorDTO>(HttpStatusCode.Unauthorized, "Doctor ID not found in token");
-
-        if (!int.TryParse(doctorIdClaim.Value, out int doctorId))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Invalid doctor ID in token");
-
-        var doctor = await doctorRepository.GetByIdAsync(doctorId);
+        var doctor = await doctorRepository.GetByIdAsync(doctorActivity.DoctorId);
         if (doctor == null || doctor.IsDeleted)
             return new Response<GetDoctorDTO>(HttpStatusCode.NotFound, "Doctor not found");
 
@@ -411,5 +405,19 @@ public class DoctorService(
         await doctorRepository.UpdateAsync(doctor);
 
         return new Response<string>("Profile image deleted successfully.");
+    }
+
+    public async Task<Response<List<SpecializationDTO>>> GetSpecializationsAsync()
+    {
+        var specializations = Enum.GetValues(typeof(DoctorSpecialization))
+            .Cast<DoctorSpecialization>()
+            .Select(e => new SpecializationDTO
+            {
+                Id = (int)e,
+                Name = e.ToString()
+            })
+            .ToList();
+
+        return new Response<List<SpecializationDTO>>(specializations);
     }
 }

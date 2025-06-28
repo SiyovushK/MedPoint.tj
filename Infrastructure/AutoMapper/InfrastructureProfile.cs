@@ -60,6 +60,9 @@ public class InfrastructureProfile : Profile
         CreateMap<UpdateReviewDTO, Review>()
             .ForMember(dest => dest.Doctor, opt => opt.Ignore())
             .ForMember(dest => dest.User, opt => opt.Ignore());
-        CreateMap<Review, GetReviewDTO>();
+        CreateMap<Review, GetReviewDTO>()
+            .ForMember(dest => dest.DoctorName, opt => opt.MapFrom(src => src.Doctor != null
+                ? $"{src.Doctor.FirstName} {src.Doctor.LastName}" : null))
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"));
     }
 }
