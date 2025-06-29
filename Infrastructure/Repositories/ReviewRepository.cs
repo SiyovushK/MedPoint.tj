@@ -27,11 +27,17 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
 
     public IQueryable<Review> GetAll()
     {
-        return context.Reviews.AsQueryable();
+        return context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .AsQueryable();
     }
 
     public async Task<Review?> GetByIdAsync(int id)
     {
-        return await context.Reviews.FirstOrDefaultAsync(u => u.Id == id);
+        return await context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .FirstOrDefaultAsync(u => u.Id == id);
     }   
 } 
