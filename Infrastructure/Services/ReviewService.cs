@@ -132,8 +132,24 @@ public class ReviewService(
         if (filter.DoctorId.HasValue)
             query = query.Where(r => r.DoctorId == filter.DoctorId);
 
+        if (!string.IsNullOrWhiteSpace(filter.DoctorName))
+        {
+            var search = filter.DoctorName.ToLower();
+            query = query.Where(r =>
+                r.Doctor.FirstName.ToLower().Contains(search) ||
+                r.Doctor.LastName.ToLower().Contains(search));
+        }
+
         if (filter.UserId.HasValue)
             query = query.Where(r => r.UserId == filter.UserId);
+
+        if (!string.IsNullOrWhiteSpace(filter.UserName))
+        {
+            var search = filter.UserName.ToLower();
+            query = query.Where(r =>
+                r.User.FirstName.ToLower().Contains(search) ||
+                r.User.LastName.ToLower().Contains(search));
+        }
 
         if (filter.RatingFrom.HasValue)
             query = query.Where(r => r.Rating >= filter.RatingFrom);
@@ -166,6 +182,28 @@ public class ReviewService(
         var getReview = mapper.Map<GetReviewDTO>(review);
 
         return new Response<GetReviewDTO>(getReview);
+    }
+
+    public async Task<Response<List<GetReviewDTO>>> GetByUserIdAsync(int userId)
+    {
+        var reviews = await reviewRepository.GetByUserIdAsync(userId);
+        if (reviews == null)
+            return new Response<List<GetReviewDTO>>(HttpStatusCode.NotFound, $"No reviews found for user id {userId}.");
+
+        var getReview = mapper.Map<List<GetReviewDTO>>(reviews);
+
+        return new Response<List<GetReviewDTO>>(getReview);
+    }
+
+    public async Task<Response<List<GetReviewDTO>>> GetByDoctorIdAsync(int doctorId)
+    {
+        var reviews = await reviewRepository.GetByDoctorIdAsync(doctorId);
+        if (reviews == null)
+            return new Response<List<GetReviewDTO>>(HttpStatusCode.NotFound, $"No reviews found for doctor id {doctorId}.");
+
+        var getReview = mapper.Map<List<GetReviewDTO>>(reviews);
+
+        return new Response<List<GetReviewDTO>>(getReview);
     }
 
     public async Task<Response<string>> HideOrShowAsync(HideOrShowDTO dto)

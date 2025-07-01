@@ -12,7 +12,8 @@ public class GetOrderDTO
     public DateOnly Date { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
-    
+
     public DateTime CreatedAt { get; set; }
     public OrderStatus OrderStatus { get; set; }
+    public string? CancellationReason { get; set; }
 }

@@ -54,7 +54,11 @@ public class InfrastructureProfile : Profile
         CreateMap<UpdateOrderDTO, Order>()
             .ForMember(dest => dest.DoctorId, opt => opt.Ignore())
             .ForMember(dest => dest.UserId, opt => opt.Ignore());
-        CreateMap<Order, GetOrderDTO>();
+        CreateMap<Order, GetOrderDTO>()
+            .ForMember(dest => dest.DoctorName,
+                opt => opt.MapFrom(src => $"{src.Doctor.FirstName} {src.Doctor.LastName}"))
+            .ForMember(dest => dest.UserName,
+                opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"));
 
         CreateMap<CreateReviewDTO, Review>();
         CreateMap<UpdateReviewDTO, Review>()

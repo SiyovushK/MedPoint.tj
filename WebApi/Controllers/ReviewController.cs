@@ -44,6 +44,22 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpGet("ByUserId")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<List<GetReviewDTO>>>> GetByUserIdAsync(int userId)
+    {
+        var result = await reviewService.GetByUserIdAsync(userId);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [HttpGet("ByDoctorId")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Response<List<GetReviewDTO>>>> GetByDoctorIdAsync(int doctorId)
+    {
+        var result = await reviewService.GetByDoctorIdAsync(doctorId);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
     [HttpGet("All")]
     [AllowAnonymous]
     public async Task<ActionResult<Response<List<GetReviewDTO>>>> GetAllAsync([FromQuery] ReviewFilter filter)

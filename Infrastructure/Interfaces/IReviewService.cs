@@ -13,6 +13,8 @@ public interface IReviewService
 
     Task<Response<GetReviewDTO>> GetByIdAsync(int reviewId);
     Task<Response<List<GetReviewDTO>>> GetAllAsync(ReviewFilter filter);
+    Task<Response<List<GetReviewDTO>>> GetByUserIdAsync(int userId);
+    Task<Response<List<GetReviewDTO>>> GetByDoctorIdAsync(int doctorId);
 
     Task<Response<string>> HideOrShowAsync(HideOrShowDTO dto);
 }
