@@ -1,0 +1,101 @@
+using Domain.DTOs.EmailDTOs;
+using Domain.Enums;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Infrastructure.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Infrastructure.Hangfire;
+
+public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
+{
+    public async Task ProcessPendingOrdersAsync()
+    {
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+            var now = DateTime.UtcNow;
+            var pendingOrders = await orderRepository.GetPendingOrdersAsync();
+
+            foreach (var order in pendingOrders)
+            {
+                if ((now - order.CreatedAt).TotalHours >= 24)
+                {
+                    order.OrderStatus = OrderStatus.NotAccepted;
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    public async Task FinishedOrdersAsync()
+    {
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+            var now = DateTime.UtcNow;
+            var ordersToFinish = await orderRepository.GetFinishedEligibleOrdersAsync(now);
+
+            foreach (var order in ordersToFinish)
+            {
+                order.OrderStatus = OrderStatus.Finished;
+            }
+
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    public async Task SendAppointmentRemindersAsync()
+    {
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
+            var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+            try
+            {
+                var now = DateTime.UtcNow;
+                var upcomingOrders = await orderRepository.GetOrdersForUpcomingHourAsync(now);
+
+                if (!upcomingOrders.Any())
+                {
+                    await transaction.CommitAsync();
+                    return;
+                }
+
+                foreach (var order in upcomingOrders)
+                {
+                    var emailDto = new EmailDTO()
+                    {
+                        To = order.User.Email,
+                        Subject = $"Reminder of doctor appointment",
+                        Body = $"Dear {order.User.FirstName},\n\n"
+                            + $"We want to remind you that you have and appointment to the doctor {order.Doctor.FirstName} {order.Doctor.LastName} "
+                            + $"today at {order.StartTime:hh\\:mm}."
+                    };
+
+                    await emailService.SendEmailAsync(emailDto);
+                    order.ReminderSent = true;
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+    }
+    
+}

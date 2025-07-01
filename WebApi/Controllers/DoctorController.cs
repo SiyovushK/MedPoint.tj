@@ -68,6 +68,14 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpGet("specializations")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Response<List<SpecializationDTO>>>> GetSpecializations()
+    {
+        var result = await doctorService.GetSpecializationsAsync();
+        return StatusCode((int)result.StatusCode, result);
+    }
+
     [HttpPost("upload-or-update-profile-image")]
     [Authorize(Roles = Roles.Doctor)]
     public async Task<ActionResult<Response<string>>> UploadOrUpdateProfileImageAsync(IFormFile file)
@@ -81,14 +89,6 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
     public async Task<ActionResult<Response<string>>> DeleteProfileImageAsync()
     {
         var result = await doctorService.DeleteProfileImageAsync(User);
-        return StatusCode((int)result.StatusCode, result);
-    }
-
-    [HttpGet("specializations")]
-    [AllowAnonymous]
-    public async Task<ActionResult<Response<List<SpecializationDTO>>>> GetSpecializations()
-    {
-        var result = await doctorService.GetSpecializationsAsync();
         return StatusCode((int)result.StatusCode, result);
     }
 }

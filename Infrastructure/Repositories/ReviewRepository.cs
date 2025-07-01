@@ -30,6 +30,7 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
         return context.Reviews
             .Include(r => r.User)
             .Include(r => r.Doctor)
+            .OrderByDescending(r => r.CreatedAt)
             .AsQueryable();
     }
 
@@ -39,5 +40,25 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
             .Include(r => r.User)
             .Include(r => r.Doctor)
             .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<List<Review>> GetByUserIdAsync(int userId)
+    {
+        return await context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }   
+
+    public async Task<List<Review>> GetByDoctorIdAsync(int doctorId)
+    {
+        return await context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .Where(r => r.DoctorId == doctorId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
     }   
 } 

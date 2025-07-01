@@ -484,3 +484,6 @@ $RECYCLE.BIN/
 *.swp
 
 WebApi/medpoint.db
+*.db
+*shm
+*wal
