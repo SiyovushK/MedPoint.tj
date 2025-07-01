@@ -13,6 +13,9 @@ public class Order
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
+    public string? CancellationReason { get; set; }
+
+    public bool ReminderSent { get; set; } = false;
 
     public User User { get; set; } = null!;
     public Doctor Doctor { get; set; } = null!;
