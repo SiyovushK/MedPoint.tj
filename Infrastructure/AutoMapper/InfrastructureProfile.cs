@@ -51,14 +51,13 @@ public class InfrastructureProfile : Profile
             .ForMember(dest => dest.ProfileImageUrl, opt => opt.Ignore());
 
         CreateMap<CreateOrderDTO, Order>();
-        CreateMap<UpdateOrderDTO, Order>()
-            .ForMember(dest => dest.DoctorId, opt => opt.Ignore())
-            .ForMember(dest => dest.UserId, opt => opt.Ignore());
         CreateMap<Order, GetOrderDTO>()
             .ForMember(dest => dest.DoctorName,
                 opt => opt.MapFrom(src => $"{src.Doctor.FirstName} {src.Doctor.LastName}"))
             .ForMember(dest => dest.UserName,
-                opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"));
+                opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"))
+            .ForMember(dest => dest.CreatedAt,
+                opt => opt.MapFrom(src => src.CreatedAt.AddHours(5)));
 
         CreateMap<CreateReviewDTO, Review>();
         CreateMap<UpdateReviewDTO, Review>()
@@ -67,6 +66,10 @@ public class InfrastructureProfile : Profile
         CreateMap<Review, GetReviewDTO>()
             .ForMember(dest => dest.DoctorName, opt => opt.MapFrom(src => src.Doctor != null
                 ? $"{src.Doctor.FirstName} {src.Doctor.LastName}" : null))
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"));
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"))
+            .ForMember(dest => dest.CreatedAt,
+                opt => opt.MapFrom(src => src.CreatedAt.AddHours(5)))
+            .ForMember(dest => dest.UpdatedAt,
+                opt => opt.MapFrom(src => src.UpdatedAt.AddHours(5)));
     }
 }

@@ -1,4 +1,6 @@
 using Domain.Entities;
+using Infrastructure.Data;
+using Infrastructure.Hangfire;
 using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
@@ -32,9 +34,12 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(IAuthRepository<>), typeof(AuthRepository<>));
         services.AddScoped<IAuthService, AuthService>();
-        
+
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IPasswordHasher<Doctor>, PasswordHasher<Doctor>>();
+        
+        services.AddScoped<OrderProcessingJob>();
+        services.AddScoped<DataContext>();
     }
 }
