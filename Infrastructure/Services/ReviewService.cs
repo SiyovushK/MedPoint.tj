@@ -111,7 +111,7 @@ public class ReviewService(
     public async Task<Response<string>> DeleteAsync(int reviewId)
     {
         var review = await reviewRepository.GetByIdAsync(reviewId);
-        if (review == null)
+        if (review == null || review.IsHidden)
             return new Response<string>(HttpStatusCode.NotFound, $"Review with ID {reviewId} not found.");
 
         if (await reviewRepository.DeleteAsync(review) == 0)

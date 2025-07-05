@@ -5,7 +5,10 @@ namespace Domain.Filters;
 public class OrderFilter
 {
     public int? DoctorId { get; set; }
+    public string? DoctorName { get; set; }
+    
     public int? UserId { get; set; }
+    public string? UserName { get; set; }
 
     public DateOnly? DateFrom { get; set; }
     public DateOnly? DateTo { get; set; }
