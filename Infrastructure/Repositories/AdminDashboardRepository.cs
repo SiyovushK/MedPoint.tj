@@ -1,4 +1,6 @@
 using Domain.DTOs.AdminDashboardDTOs;
+using Domain.DTOs.DoctorDTOs;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,5 +22,21 @@ public class AdminDashboardRepository(DataContext context)
             ReviewsCount = reviewsCount,
             OrdersCount = ordersCount
         };
+    }
+
+    public async Task<List<PopularDoctorDTO>> GetPopularDoctors()
+    {
+        var popularDoctors = await context.Orders
+            .GroupBy(o => new { o.DoctorId, o.Doctor.FirstName, o.Doctor.LastName })
+            .Select(g => new PopularDoctorDTO
+            {
+                DoctorId = g.Key.DoctorId,
+                DoctorName = g.Key.FirstName + " " + g.Key.LastName,
+                OrderCount = g.Count()
+            })
+            .OrderByDescending(x => x.OrderCount)
+            .ToListAsync();
+
+        return popularDoctors;
     }
 }

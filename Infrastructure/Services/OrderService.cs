@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using AutoMapper;
+using Domain.DTOs.EmailDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.Entities;
 using Domain.Enums;
@@ -18,7 +19,8 @@ public class OrderService(
         OrderRepository orderRepository,
         DoctorRepository doctorRepository,
         UserRepository userRepository,
-        DataContext dataContext) : IOrderService
+        DataContext dataContext,
+        IEmailService emailService) : IOrderService
 {
     public async Task<Response<GetOrderDTO>> CreateAsync(CreateOrderDTO createOrder)
     {
@@ -31,6 +33,8 @@ public class OrderService(
         var doctor = await doctorRepository.GetByIdAsync(createOrder.DoctorId);
         if (doctor == null || doctor.IsDeleted)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createOrder.DoctorId} not found.");
+        if (!doctor.IsActive)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor with ID {createOrder.DoctorId} is not available at the moment, please choose different doctor.");
 
         // Date
         if (createOrder.Date < DateOnly.FromDateTime(DateTime.UtcNow))
@@ -74,6 +78,15 @@ public class OrderService(
             var dto = mapper.Map<GetOrderDTO>(order);
             dto.UserName = $"{user.FirstName} {user.LastName}";
             dto.DoctorName = $"{doctor.FirstName} {doctor.LastName}";
+
+            var emailDto = new EmailDTO
+            {
+                To = user.Email,
+                Subject = "Reservation info",
+                Body = $"Hello {user.FirstName},\n\nYou have made an reservation to doctor {dto.DoctorName} on date {dto.Date} at {dto.StartTime.AddHours(5):hh\\:mm}." +
+                        "A message will be send to your email as sson as your reservation is gonna be confirmed.\n\nBest regards, MedPoint team."
+            };
+            await emailService.SendEmailAsync(emailDto);
 
             return new Response<GetOrderDTO>(dto);
         }
@@ -220,6 +233,14 @@ public class OrderService(
 
         var dto = mapper.Map<GetOrderDTO>(order);
 
+        var emailDto = new EmailDTO
+        {
+            To = order.User.Email,
+            Subject = "Reservation confirmation info",
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):hh\\:mm:hh\\:mm:hh\\:mm} is confirmed!"
+        };
+        await emailService.SendEmailAsync(emailDto);
+
         return new Response<GetOrderDTO>(dto);
     }
 
@@ -248,6 +269,15 @@ public class OrderService(
 
         var dto = mapper.Map<GetOrderDTO>(order);
 
+        var emailDto = new EmailDTO
+        {
+            To = order.User.Email,
+            Subject = "Reservation cancellation info",
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):hh\\:mm:hh\\:mm} has been cancelled by doctor!" +
+                $"Cancellation reason: '{dto.CancellationReason}'"
+        };
+        await emailService.SendEmailAsync(emailDto);
+
         return new Response<GetOrderDTO>(dto);
     }
 
@@ -273,6 +303,14 @@ public class OrderService(
             return new Response<GetOrderDTO>(HttpStatusCode.InternalServerError, "Failed to confirm the order.");
 
         var dto = mapper.Map<GetOrderDTO>(order);
+
+        var emailDto = new EmailDTO
+        {
+            To = order.User.Email,
+            Subject = "Reservation cancellation info",
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):hh\\:mm} has been cancelled by you successfully!"
+        };
+        await emailService.SendEmailAsync(emailDto);
 
         return new Response<GetOrderDTO>(dto);
     }
