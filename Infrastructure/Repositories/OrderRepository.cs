@@ -42,6 +42,41 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
+    public async Task<List<Order>> GetByUserIdAsync(int userId)
+    {
+        return await context.Orders
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.StartTime)
+            .ToListAsync();
+    }   
+
+    public async Task<List<Order>> GetByDoctorIdAsync(int doctorId)
+    {
+        return await context.Orders
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .Where(r => r.DoctorId == doctorId)
+            .OrderByDescending(r => r.StartTime)
+            .ToListAsync();
+    }   
+
+    public async Task<bool> IsDoctorBusyAsync(int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
+    {
+        return await context.Orders
+        .Where(o => o.DoctorId == doctorId &&
+                    o.Date == date &&
+                    o.OrderStatus != OrderStatus.CancelledByDoctor &&
+                    o.OrderStatus != OrderStatus.CancelledByUser &&
+                    o.OrderStatus != OrderStatus.Finished &&
+                    (
+                        startTime < o.EndTime && endTime > o.StartTime
+                    ))
+        .AnyAsync();
+    }
+
+    // Hangfire methods
     public async Task<List<Order>> GetPendingOrdersAsync()
     {
         return await context.Orders
@@ -51,10 +86,13 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
 
     public async Task<List<Order>> GetFinishedEligibleOrdersAsync(DateTime utcNow)
     {
-        return await context.Orders
-            .Where(o => o.OrderStatus == OrderStatus.Active &&
-                        o.Date.ToDateTime(o.EndTime) <= utcNow)
+        var orders = await context.Orders
+            .Where(o => o.OrderStatus == OrderStatus.Active)
             .ToListAsync();
+
+        return orders
+            .Where(o => o.Date.ToDateTime(o.EndTime) <= utcNow)
+            .ToList();
     }
 
     public async Task<List<Order>> GetOrdersForUpcomingHourAsync(DateTime utcNow)

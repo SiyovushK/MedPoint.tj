@@ -1,8 +1,8 @@
 using Domain.DTOs.EmailDTOs;
 using Domain.Enums;
 using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
-using Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Hangfire;
@@ -55,7 +55,7 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
         using (var scope = _scopeFactory.CreateScope())
         {
             var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
-            var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+            var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
             var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
