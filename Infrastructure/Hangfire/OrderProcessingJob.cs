@@ -79,7 +79,7 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
                         Subject = $"Reminder of doctor appointment",
                         Body = $"Dear {order.User.FirstName},\n\n"
                             + $"We want to remind you that you have and appointment to the doctor {order.Doctor.FirstName} {order.Doctor.LastName} "
-                            + $"today at {order.StartTime:hh\\:mm}."
+                            + $"today at {order.StartTime.AddHours(5):hh\\:mm}."
                     };
 
                     await emailService.SendEmailAsync(emailDto);
