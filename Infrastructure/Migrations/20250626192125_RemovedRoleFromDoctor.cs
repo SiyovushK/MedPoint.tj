@@ -5,10 +5,18 @@
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Migration4 : Migration
+    public partial class RemovedRoleFromDoctor : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "Role",
+                table: "Doctors");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
                 name: "Role",
@@ -16,14 +24,6 @@ namespace Infrastructure.Migrations
                 type: "TEXT",
                 nullable: false,
                 defaultValue: "");
-        }
-
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "Role",
-                table: "Doctors");
         }
     }
 }
