@@ -4,11 +4,13 @@ using Infrastructure.Data;
 using Infrastructure.DI;
 using Infrastructure.Extensions;
 using Infrastructure.Hangfire;
+using Infrastructure.Services.HelperServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://147.45.146.15:5063");
+// builder.WebHost.UseUrls("http://147.45.146.15:5063");
 
 builder.Services.AddCors(options =>
 {
@@ -30,6 +32,20 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAutoMapper(typeof(InfrastructureProfile));
 builder.Services.AddInfrastructure();
 builder.Services.AddSwaggerConfiguration();
+builder.Services
+  .AddControllers()
+  .AddJsonOptions(opts =>
+  {
+    opts.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+    opts.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+  });
+
+builder.Services.AddSwaggerGen(c =>
+{
+  c.MapType<DateOnly>(()   => new OpenApiSchema { Type = "string", Format = "date" });
+  c.MapType<TimeOnly>(()   => new OpenApiSchema { Type = "string", Format = "time" });
+  c.SchemaFilter<TimeOnlySchemaFilter>();
+});
 builder.Services.AddAuthenticationConfiguration(builder.Configuration);
 builder.Services.AddHangfireConfiguration(builder.Configuration);
 builder.Services.AddDbContext<DataContext>(options =>

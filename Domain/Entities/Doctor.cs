@@ -29,9 +29,12 @@ public class Doctor
     public bool IsActive { get; set; } = true;
     public bool IsDeleted { get; set; } = false;
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public string? ResetToken { get; set; }
     public DateTime? ResetTokenExpiry { get; set; }
 
     public List<Review> Reviews { get; set; } = new();
     public List<Order> Orders { get; set; } = new();
+    public List<DoctorSchedule> Schedules { get; set; } = new();
 }

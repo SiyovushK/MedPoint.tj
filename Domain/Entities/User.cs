@@ -25,6 +25,8 @@ public class User
     public bool IsDeleted { get; set; } = false;
     public bool IsEmailVerified { get; set; } = false;
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public string? ResetToken { get; set; }
     public DateTime? ResetTokenExpiry { get; set; }
 
