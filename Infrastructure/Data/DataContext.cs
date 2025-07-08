@@ -9,6 +9,7 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
     public DbSet<Doctor> Doctors { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Review> Reviews { get; set; }
+    public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +48,11 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
 
             entity.Property(d => d.Description)
                 .HasMaxLength(500);
+
+            _ = modelBuilder.Entity<Doctor>()
+                .HasMany(d => d.Schedules)
+                .WithOne(s => s.Doctor)
+                .HasForeignKey(s => s.DoctorId);
 
             entity.HasMany(d => d.Orders)
                 .WithOne(o => o.Doctor)

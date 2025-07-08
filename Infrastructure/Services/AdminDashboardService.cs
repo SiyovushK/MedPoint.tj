@@ -15,6 +15,12 @@ public class AdminDashboardService
         return new Response<CountStatisticsDTO>(getStatistics);
     }
 
+    public async Task<Response<List<MonthlyCountStatistics>>> GetMonthlyCountStatistics()
+    {
+        var getStatistics = await adminDashboard.GetMonthlyStatisticsAsync();
+        return new Response<List<MonthlyCountStatistics>>(getStatistics);
+    }
+
     public async Task<Response<List<PopularDoctorDTO>>> GetPopularDoctors()
     {
         var getPopularDoctors = await adminDashboard.GetPopularDoctors();

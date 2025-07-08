@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250706181048_AddedCreatedAtToUserAndDoctorTables")]
+    partial class AddedCreatedAtToUserAndDoctorTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
@@ -86,43 +89,6 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Doctors");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DoctorSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DoctorId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DoctorName")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDayOff")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<TimeOnly?>("LunchEnd")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeOnly?>("LunchStart")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeOnly?>("WorkEnd")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeOnly?>("WorkStart")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DoctorId");
-
-                    b.ToTable("DoctorSchedules");
                 });
 
             modelBuilder.Entity("Domain.Entities.Order", b =>
@@ -267,17 +233,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DoctorSchedule", b =>
-                {
-                    b.HasOne("Domain.Entities.Doctor", "Doctor")
-                        .WithMany("Schedules")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Doctor");
-                });
-
             modelBuilder.Entity("Domain.Entities.Order", b =>
                 {
                     b.HasOne("Domain.Entities.Doctor", "Doctor")
@@ -320,8 +275,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("Schedules");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

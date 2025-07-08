@@ -50,7 +50,7 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.StartTime)
             .ToListAsync();
-    }   
+    }
 
     public async Task<List<Order>> GetByDoctorIdAsync(int doctorId)
     {
@@ -60,7 +60,7 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
             .Where(r => r.DoctorId == doctorId)
             .OrderByDescending(r => r.StartTime)
             .ToListAsync();
-    }   
+    }
 
     public async Task<bool> IsDoctorBusyAsync(int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
     {
@@ -94,20 +94,28 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
             .Where(o => o.Date.ToDateTime(o.EndTime) <= utcNow)
             .ToList();
     }
-
+    
     public async Task<List<Order>> GetOrdersForUpcomingHourAsync(DateTime utcNow)
     {
         var startTime = utcNow.AddHours(1);
         var endTime = utcNow.AddHours(2);
+        var dateOnly = DateOnly.FromDateTime(startTime);
 
-        return await context.Orders
+        var orders = await context.Orders
             .Include(o => o.User)
             .Include(o => o.Doctor)
             .Where(o =>
                 o.OrderStatus == OrderStatus.Active &&
                 !o.ReminderSent &&
-                o.Date.ToDateTime(o.StartTime) >= startTime &&
-                o.Date.ToDateTime(o.StartTime) < endTime)
+                o.Date == dateOnly)
             .ToListAsync();
+
+        return orders
+            .Where(o =>
+            {
+                var appointmentDateTime = o.Date.ToDateTime(o.StartTime);
+                return appointmentDateTime >= startTime && appointmentDateTime < endTime;
+            })
+            .ToList();
     }
 }
