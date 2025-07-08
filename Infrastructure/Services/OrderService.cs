@@ -18,73 +18,88 @@ public class OrderService(
         IMapper mapper,
         OrderRepository orderRepository,
         DoctorRepository doctorRepository,
+        DoctorScheduleRepository doctorScheduleRepository,
         UserRepository userRepository,
         DataContext dataContext,
         IEmailService emailService) : IOrderService
 {
     public async Task<Response<GetOrderDTO>> CreateAsync(CreateOrderDTO createOrder)
     {
-        // User
+        // 1) User
         var user = await userRepository.GetByIdAsync(createOrder.UserId);
         if (user == null || user.IsDeleted)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"User with ID {createOrder.UserId} not found.");
 
-        // Doctor
+        // 2) Doctor
         var doctor = await doctorRepository.GetByIdAsync(createOrder.DoctorId);
         if (doctor == null || doctor.IsDeleted)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createOrder.DoctorId} not found.");
         if (!doctor.IsActive)
-            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor with ID {createOrder.DoctorId} is not available at the moment, please choose different doctor.");
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor with ID {createOrder.DoctorId} is not available at the moment.");
 
-        // Date
-        if (createOrder.Date < DateOnly.FromDateTime(DateTime.UtcNow))
-            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Date of reservation can't be in the past");
-
-        // Start Time
+        // 3) Date check
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (createOrder.Date < today)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Date of reservation can't be in the past.");
+
         var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
         if (createOrder.Date == today && createOrder.StartTime < nowTime)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Start time can't be in the past.");
 
-        var workStart = new TimeOnly(8, 0);
-        var workEnd = new TimeOnly(18, 0);
+        // 5) Schedule of doctor
+        var dayOfWeek = createOrder.Date.DayOfWeek;
+        var schedule = await doctorScheduleRepository
+            .GetAll()
+            .FirstOrDefaultAsync(s => s.DoctorId == createOrder.DoctorId && s.DayOfWeek == dayOfWeek);
+
+        if (schedule == null)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor's schedule is unavailable.");
+
+        if (schedule.IsDayOff)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor is off on {dayOfWeek}.");
+
+        // 6) Check order time
         var endTime = createOrder.StartTime.AddMinutes(30);
+        if (createOrder.StartTime < schedule.WorkStart || endTime > schedule.WorkEnd)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest,
+                $"Please pick a time between {schedule.WorkStart:HH\\:mm} and {schedule.WorkEnd:HH\\:mm}.");
 
-        if (createOrder.StartTime < workStart || endTime > workEnd)
-            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Doctors work from 08:00 to 18:00. Please select time within schedule.");
+        if (schedule.LunchStart.HasValue && schedule.LunchEnd.HasValue)
+        {
+            if (createOrder.StartTime < schedule.LunchEnd.Value && endTime > schedule.LunchStart.Value)
+                return new Response<GetOrderDTO>(HttpStatusCode.BadRequest,
+                    $"The selected slot {createOrder.StartTime:HH\\:mm}-{endTime:HH\\:mm} falls into lunch break " +
+                    $"({schedule.LunchStart:HH\\:mm}-{schedule.LunchEnd:HH\\:mm}).");
+        }
 
-        await using var transaction = await dataContext.Database.BeginTransactionAsync();
-
+        await using var tx = await dataContext.Database.BeginTransactionAsync();
         try
         {
-            var isBusy = await orderRepository.IsDoctorBusyAsync(
-                createOrder.DoctorId,
-                createOrder.Date,
-                createOrder.StartTime,
-                endTime);
-
-            if (isBusy)
-                return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "The selected time slot is already booked.");
+            var busy = await orderRepository.IsDoctorBusyAsync(
+                createOrder.DoctorId, createOrder.Date, createOrder.StartTime, endTime);
+            if (busy)
+                return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Time slot already booked.");
 
             var order = mapper.Map<Order>(createOrder);
             order.EndTime = endTime;
 
-            var result = await orderRepository.AddAsync(order);
-            if (result == 0)
-                return new Response<GetOrderDTO>(HttpStatusCode.InternalServerError, "Error when creating a reservation.");
+            if (await orderRepository.AddAsync(order) == 0)
+                throw new Exception("DB insert returned 0");
 
-            await transaction.CommitAsync();
+            await tx.CommitAsync();
 
             var dto = mapper.Map<GetOrderDTO>(order);
-            dto.UserName = $"{user.FirstName} {user.LastName}";
+            dto.UserName   = $"{user.FirstName} {user.LastName}";
             dto.DoctorName = $"{doctor.FirstName} {doctor.LastName}";
 
             var emailDto = new EmailDTO
             {
-                To = user.Email,
+                To      = user.Email,
                 Subject = "Reservation info",
-                Body = $"Hello {user.FirstName},\n\nYou have made an reservation to doctor {dto.DoctorName} on date {dto.Date} at {dto.StartTime.AddHours(5):hh\\:mm}." +
-                        "A message will be send to your email as sson as your reservation is gonna be confirmed.\n\nBest regards, MedPoint team."
+                Body    = $"Hello {user.FirstName},\n\n" +
+                        $"Your reservation with Dr. {dto.DoctorName} on {dto.Date:yyyy-MM-dd} " +
+                        $"at {dto.StartTime:HH\\:mm} is created. You will be notified when it's confirmed.\n\n" +
+                        "Best regards, MedPoint Team."
             };
             await emailService.SendEmailAsync(emailDto);
 
@@ -92,7 +107,7 @@ public class OrderService(
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await tx.RollbackAsync();
             Console.WriteLine(ex.Message);
             return new Response<GetOrderDTO>(HttpStatusCode.InternalServerError, $"Transaction failed: {ex.Message}");
         }
@@ -237,7 +252,7 @@ public class OrderService(
         {
             To = order.User.Email,
             Subject = "Reservation confirmation info",
-            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):hh\\:mm:hh\\:mm:hh\\:mm} is confirmed!"
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):HH\\:mm:HH\\:mm:HH\\:mm} is confirmed!"
         };
         await emailService.SendEmailAsync(emailDto);
 
@@ -273,7 +288,7 @@ public class OrderService(
         {
             To = order.User.Email,
             Subject = "Reservation cancellation info",
-            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):hh\\:mm:hh\\:mm} has been cancelled by doctor!" +
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):HH\\:mm:HH\\:mm} has been cancelled by doctor!" +
                 $"Cancellation reason: '{dto.CancellationReason}'"
         };
         await emailService.SendEmailAsync(emailDto);
@@ -308,7 +323,7 @@ public class OrderService(
         {
             To = order.User.Email,
             Subject = "Reservation cancellation info",
-            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):hh\\:mm} has been cancelled by you successfully!"
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):HH\\:mm} has been cancelled by you successfully!"
         };
         await emailService.SendEmailAsync(emailDto);
 

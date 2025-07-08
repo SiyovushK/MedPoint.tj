@@ -7,5 +7,6 @@ namespace Infrastructure.Interfaces;
 public interface IAdminDashboardService
 {
     Task<Response<CountStatisticsDTO>> GetCountStatistics();
+    Task<Response<List<MonthlyCountStatistics>>> GetMonthlyCountStatistics();
     Task<Response<List<PopularDoctorDTO>>> GetPopularDoctors();
 } 

@@ -15,7 +15,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
 {   
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<Response<GetOrderDTO>>> CreateAsync(CreateOrderDTO createOrder)
+    public async Task<ActionResult<Response<GetOrderDTO>>> CreateAsync([FromBody] CreateOrderDTO createOrder)
     {
         var result = await orderService.CreateAsync(createOrder);
         return StatusCode((int)result.StatusCode, result); 

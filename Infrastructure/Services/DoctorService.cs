@@ -20,6 +20,7 @@ namespace Infrastructure.Services;
 public class DoctorService(
         IBaseRepository<Doctor, int> repository,
         DoctorRepository doctorRepository,
+        DoctorScheduleRepository doctorScheduleRepository,
         IMapper mapper,
         IPasswordHasher<Doctor> passwordHasher,
         IEmailService emailService,
@@ -104,6 +105,27 @@ public class DoctorService(
 
         if (await doctorRepository.AddAsync(doctor) == 0)
             return new Response<GetDoctorDTO>(HttpStatusCode.InternalServerError, "Doctor registration error!");
+
+        // DoctorSchedule
+        foreach (DayOfWeek dow in Enum.GetValues(typeof(DayOfWeek)))
+        {
+            var schedule = new DoctorSchedule
+            {
+                DoctorId = doctor.Id,
+                DayOfWeek = dow,
+                IsDayOff = dow == DayOfWeek.Sunday
+            };
+
+            if (!schedule.IsDayOff)
+            {
+                schedule.WorkStart = new TimeOnly(8, 0);
+                schedule.WorkEnd = new TimeOnly(18, 0);
+                schedule.LunchStart = new TimeOnly(12, 0);
+                schedule.LunchEnd = new TimeOnly(13, 0);
+            }
+
+            await doctorScheduleRepository.AddAsync(schedule);
+        }
 
         var emailDto = new EmailDTO
         {

@@ -2,6 +2,7 @@ using AutoMapper;
 using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.DTOs.ReviewDTOs;
+using Domain.DTOs.ScheduleDTOs;
 using Domain.DTOs.UserDTOs;
 using Domain.Entities;
 
@@ -71,5 +72,11 @@ public class InfrastructureProfile : Profile
                 opt => opt.MapFrom(src => src.CreatedAt.AddHours(5)))
             .ForMember(dest => dest.UpdatedAt,
                 opt => opt.MapFrom(src => src.UpdatedAt.AddHours(5)));
+
+        CreateMap<CreateDoctorScheduleDTO, DoctorSchedule>();
+        CreateMap<UpdateDoctorScheduleDTO, DoctorSchedule>();
+        CreateMap<DoctorSchedule, GetDoctorScheduleDTO>()
+            .ForMember(dest => dest.DoctorName,
+                opt => opt.MapFrom(src => $"{src.Doctor.FirstName} {src.Doctor.LastName}"));
     }
 }
