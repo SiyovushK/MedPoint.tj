@@ -23,12 +23,16 @@ public class OrderService(
         DataContext dataContext,
         IEmailService emailService) : IOrderService
 {
-    public async Task<Response<GetOrderDTO>> CreateAsync(CreateOrderDTO createOrder)
+    public async Task<Response<GetOrderDTO>> CreateAsync(ClaimsPrincipal userClaims, CreateOrderDTO createOrder)
     {
+        var userIdClaim = userClaims.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return new Response<GetOrderDTO>(HttpStatusCode.Unauthorized, "User ID not found in token.");
+
         // 1) User
-        var user = await userRepository.GetByIdAsync(createOrder.UserId);
+        var user = await userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
-            return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"User with ID {createOrder.UserId} not found.");
+            return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"User with ID {userId} not found.");
 
         // 2) Doctor
         var doctor = await doctorRepository.GetByIdAsync(createOrder.DoctorId);
@@ -81,6 +85,7 @@ public class OrderService(
                 return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Time slot already booked.");
 
             var order = mapper.Map<Order>(createOrder);
+            order.UserId = userId;
             order.EndTime = endTime;
 
             if (await orderRepository.AddAsync(order) == 0)
