@@ -7,7 +7,7 @@ namespace Infrastructure.Interfaces;
 
 public interface IOrderService
 {
-    Task<Response<GetOrderDTO>> CreateAsync(CreateOrderDTO createOrder);
+    Task<Response<GetOrderDTO>> CreateAsync(ClaimsPrincipal userClaims, CreateOrderDTO createOrder);
     Task<Response<string>> DeleteAsync(int orderId);
     Task<Response<GetOrderDTO>> GetByIdAsync(int orderId);
     Task<Response<List<GetOrderDTO>>> GetAllAsync(OrderFilter filter);
