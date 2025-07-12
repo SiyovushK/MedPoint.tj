@@ -31,25 +31,6 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
         }
     }
 
-    // public async Task FinishedOrdersAsync()
-    // {
-    //     using (var scope = _scopeFactory.CreateScope())
-    //     {
-    //         var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
-    //         var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-
-    //         var now = DateTime.UtcNow;
-    //         var ordersToFinish = await orderRepository.GetFinishedEligibleOrdersAsync(now);
-
-    //         foreach (var order in ordersToFinish)
-    //         {
-    //             order.OrderStatus = OrderStatus.Finished;
-    //         }
-
-    //         await dbContext.SaveChangesAsync();
-    //     }
-    // }
-
     public async Task FinishedOrdersAsync()
     {
         using (var scope = _scopeFactory.CreateScope())
@@ -57,12 +38,10 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
             var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
             var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-            // Находим текущее время в нужном часовом поясе
             var utcNow = DateTime.UtcNow;
             var targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Dushanbe");
             var localNow = TimeZoneInfo.ConvertTimeFromUtc(utcNow, targetTimeZone);
 
-            // Передаем локальное время для сравнения
             var ordersToFinish = await orderRepository.GetFinishedEligibleOrdersAsync(localNow);
 
             foreach (var order in ordersToFinish)
@@ -86,8 +65,11 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
 
             try
             {
-                var now = DateTime.UtcNow;
-                var upcomingOrders = await orderRepository.GetOrdersForUpcomingHourAsync(now);
+                var utcNow = DateTime.UtcNow;
+
+                var targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Dushanbe");
+                var localNow = TimeZoneInfo.ConvertTimeFromUtc(utcNow, targetTimeZone);
+                var upcomingOrders = await orderRepository.GetOrdersForUpcomingHourAsync(localNow);
 
                 if (!upcomingOrders.Any())
                 {
@@ -103,7 +85,7 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
                         Subject = $"Reminder of doctor appointment",
                         Body = $"Dear {order.User.FirstName},\n\n"
                             + $"We want to remind you that you have and appointment to the doctor {order.Doctor.FirstName} {order.Doctor.LastName} "
-                            + $"today at {order.StartTime.AddHours(5):HH\\:mm}."
+                            + $"today at {order.StartTime:HH\\:mm}."
                     };
 
                     await emailService.SendEmailAsync(emailDto);
