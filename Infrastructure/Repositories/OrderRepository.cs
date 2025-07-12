@@ -86,36 +86,34 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
 
     public async Task<List<Order>> GetFinishedEligibleOrdersAsync(DateTime utcNow)
     {
-        var orders = await context.Orders
-            .Where(o => o.OrderStatus == OrderStatus.Active)
-            .ToListAsync();
+        var date = DateOnly.FromDateTime(utcNow);
+        var time = TimeOnly.FromDateTime(utcNow);
 
-        return orders
-            .Where(o => o.Date.ToDateTime(o.EndTime) <= utcNow)
-            .ToList();
+        return await context.Orders
+            .Where(o => o.OrderStatus == OrderStatus.Active &&
+                        (o.Date < date || (o.Date == date && o.EndTime <= time)))
+            .ToListAsync();
     }
     
     public async Task<List<Order>> GetOrdersForUpcomingHourAsync(DateTime utcNow)
     {
         var startTime = utcNow.AddHours(1);
         var endTime = utcNow.AddHours(2);
-        var dateOnly = DateOnly.FromDateTime(startTime);
+        
+        var startDate = DateOnly.FromDateTime(startTime);
+        var startTimeOnly = TimeOnly.FromDateTime(startTime);
+        var endDate = DateOnly.FromDateTime(endTime);
+        var endTimeOnly = TimeOnly.FromDateTime(endTime);
 
-        var orders = await context.Orders
+        return await context.Orders
             .Include(o => o.User)
             .Include(o => o.Doctor)
             .Where(o =>
                 o.OrderStatus == OrderStatus.Active &&
                 !o.ReminderSent &&
-                o.Date == dateOnly)
+                (o.Date > startDate || (o.Date == startDate && o.StartTime >= startTimeOnly)) &&
+                (o.Date < endDate || (o.Date == endDate && o.StartTime < endTimeOnly))
+            )
             .ToListAsync();
-
-        return orders
-            .Where(o =>
-            {
-                var appointmentDateTime = o.Date.ToDateTime(o.StartTime);
-                return appointmentDateTime >= startTime && appointmentDateTime < endTime;
-            })
-            .ToList();
     }
 }

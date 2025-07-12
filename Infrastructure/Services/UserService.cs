@@ -270,6 +270,26 @@ public class UserService(
         return new Response<GetUserDTO>(getUserDto);
     }
 
+    public async Task<Response<List<GetUserDTO>>> GetByNameAsync(string name)
+    {
+        var users = await userRepository.GetByUserNameAsync(name);
+        if (users == null)
+            return new Response<List<GetUserDTO>>(HttpStatusCode.NotFound, $"No matching users");
+
+        var getUserDto = mapper.Map<List<GetUserDTO>>(users);
+
+        var request = httpContextAccessor.HttpContext?.Request;
+        for (int i = 0; i < users.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(users[i].ProfileImagePath) && request != null)
+            {
+                getUserDto[i].ProfileImageUrl = $"{request.Scheme}://{request.Host}{users[i].ProfileImagePath}";
+            }
+        }
+
+        return new Response<List<GetUserDTO>>(getUserDto);
+    }
+
     public async Task<Response<GetUserDTO>> GetCurrentUserAsync(ClaimsPrincipal userClaims)
     {
         var userIdClaim = userClaims.FindFirst(ClaimTypes.NameIdentifier);

@@ -13,6 +13,7 @@ public interface IDoctorService
     Task<Response<string>> DeleteAsync(int doctorId);
     Task<Response<GetDoctorDTO>> ActivateOrDisableAsync(ChangeDoctorActivityStatus doctorActivity);
     Task<Response<GetDoctorDTO>> GetByIdAsync(int doctorId);
+    Task<Response<List<GetDoctorDTO>>> GetByNameAsync(string name);
     Task<Response<GetDoctorDTO>> GetCurrentDoctorAsync(ClaimsPrincipal doctorClaims);
     Task<Response<List<GetDoctorDTO>>> GetAllAsync(DoctorFilter filter);
     Task<Response<string>> UploadOrUpdateProfileImageAsync(ClaimsPrincipal doctorClaims, IFormFile file);
