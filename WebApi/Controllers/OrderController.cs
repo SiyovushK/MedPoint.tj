@@ -21,6 +21,14 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return StatusCode((int)result.StatusCode, result); 
     }
 
+    [HttpPost("By-admin")]
+    [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<GetOrderDTO>>> CreateByAdminAsync([FromBody] CreateOrderByAdminDTO createOrder)
+    {
+        var result = await orderService.CreateByAdminAsync(createOrder);
+        return StatusCode((int)result.StatusCode, result); 
+    }
+
     [HttpDelete]
     [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<Response<string>>> DeleteAsync(int orderId)

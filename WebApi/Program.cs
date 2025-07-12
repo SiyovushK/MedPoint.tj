@@ -73,7 +73,7 @@ using (var scope = app.Services.CreateScope())
     jobManager.AddOrUpdate<OrderProcessingJob>(
         "send-appointment-reminders",
         job => job.SendAppointmentRemindersAsync(),
-        Cron.Hourly);
+        "*/15 * * * *");
 }
 
 await app.Services.ApplyMigrationsAndSeedAsync();

@@ -52,6 +52,14 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpGet("ByName")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Response<List<GetDoctorDTO>>>> GetByNameAsync(string name)
+    {
+        var result = await doctorService.GetByNameAsync(name);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
     [HttpGet("CurrentDoctor")]
     [Authorize(Roles = Roles.Doctor)]
     public async Task<ActionResult<Response<GetDoctorDTO>>> GetCurrentDoctorAsync()

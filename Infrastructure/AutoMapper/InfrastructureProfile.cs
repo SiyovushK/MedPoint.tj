@@ -52,6 +52,7 @@ public class InfrastructureProfile : Profile
             .ForMember(dest => dest.ProfileImageUrl, opt => opt.Ignore());
 
         CreateMap<CreateOrderDTO, Order>();
+        CreateMap<CreateOrderByAdminDTO, Order>();
         CreateMap<Order, GetOrderDTO>()
             .ForMember(dest => dest.DoctorName,
                 opt => opt.MapFrom(src => $"{src.Doctor.FirstName} {src.Doctor.LastName}"))

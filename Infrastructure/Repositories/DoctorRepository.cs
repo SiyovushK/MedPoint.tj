@@ -35,6 +35,18 @@ public class DoctorRepository(DataContext context) : IBaseRepository<Doctor, int
         return await context.Doctors.FirstOrDefaultAsync(u => u.Id == id);
     }
 
+    public async Task<List<Doctor>> GetByDoctorNameAsync(string doctorName)
+    {
+        var search = doctorName.ToLower();
+
+        return await context.Doctors
+            .Where(r =>
+                r.FirstName.ToLower().Contains(search) ||
+                r.LastName.ToLower().Contains(search) &&
+                r.IsDeleted == false)
+            .ToListAsync();
+    }
+
     public async Task<Doctor?> GetByPhoneAsync(string phone)
     {
         return await context.Doctors.FirstOrDefaultAsync(u => u.Phone == phone);
