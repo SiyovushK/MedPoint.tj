@@ -10,7 +10,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.WebHost.UseUrls("http://147.45.146.15:5063");
+builder.WebHost.UseUrls("http://147.45.146.15:5063");
 
 builder.Services.AddCors(options =>
 {
@@ -63,12 +63,12 @@ using (var scope = app.Services.CreateScope())
     jobManager.AddOrUpdate<OrderProcessingJob>(
         "process-pending-orders",
         job => job.ProcessPendingOrdersAsync(),
-        "*/1 * * * *");
+        "*/30 * * * *");
 
     jobManager.AddOrUpdate<OrderProcessingJob>(
         "process-finished-orders",
         job => job.FinishedOrdersAsync(),
-        "*/1 * * * *");
+        "*/30 * * * *");
 
     jobManager.AddOrUpdate<OrderProcessingJob>(
         "send-appointment-reminders",
