@@ -31,6 +31,25 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
         }
     }
 
+    // public async Task FinishedOrdersAsync()
+    // {
+    //     using (var scope = _scopeFactory.CreateScope())
+    //     {
+    //         var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
+    //         var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+    //         var now = DateTime.UtcNow;
+    //         var ordersToFinish = await orderRepository.GetFinishedEligibleOrdersAsync(now);
+
+    //         foreach (var order in ordersToFinish)
+    //         {
+    //             order.OrderStatus = OrderStatus.Finished;
+    //         }
+
+    //         await dbContext.SaveChangesAsync();
+    //     }
+    // }
+
     public async Task FinishedOrdersAsync()
     {
         using (var scope = _scopeFactory.CreateScope())
@@ -38,8 +57,13 @@ public class OrderProcessingJob(IServiceScopeFactory _scopeFactory)
             var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
             var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-            var now = DateTime.UtcNow;
-            var ordersToFinish = await orderRepository.GetFinishedEligibleOrdersAsync(now);
+            // Находим текущее время в нужном часовом поясе
+            var utcNow = DateTime.UtcNow;
+            var targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Dushanbe");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(utcNow, targetTimeZone);
+
+            // Передаем локальное время для сравнения
+            var ordersToFinish = await orderRepository.GetFinishedEligibleOrdersAsync(localNow);
 
             foreach (var order in ordersToFinish)
             {

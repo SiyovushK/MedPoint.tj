@@ -91,7 +91,7 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
 
         return await context.Orders
             .Where(o => o.OrderStatus == OrderStatus.Active &&
-                        (o.Date < date || (o.Date == date && o.EndTime <= time)))
+                    (o.Date < date || (o.Date == date && o.EndTime <= time)))
             .ToListAsync();
     }
     
