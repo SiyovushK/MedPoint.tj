@@ -288,6 +288,26 @@ public class DoctorService(
         return new Response<GetDoctorDTO>(getDoctorDto);
     }
 
+    public async Task<Response<List<GetDoctorDTO>>> GetByNameAsync(string name)
+    {
+        var doctors = await doctorRepository.GetByDoctorNameAsync(name);
+        if (doctors == null)
+            return new Response<List<GetDoctorDTO>>(HttpStatusCode.NotFound, $"No matching doctors found");
+
+        var getDoctorDto = mapper.Map<List<GetDoctorDTO>>(doctors);
+
+        var request = httpContextAccessor.HttpContext?.Request;
+        for (int i = 0; i < doctors.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(doctors[i].ProfileImagePath) && request != null)
+            {
+                getDoctorDto[i].ProfileImageUrl = $"{request.Scheme}://{request.Host}{doctors[i].ProfileImagePath}";
+            }
+        }
+
+        return new Response<List<GetDoctorDTO>>(getDoctorDto);
+    }
+
     public async Task<Response<GetDoctorDTO>> GetCurrentDoctorAsync(ClaimsPrincipal doctorClaims)
     {
         var doctorIdClaim = doctorClaims.FindFirst(ClaimTypes.NameIdentifier);
