@@ -56,6 +56,7 @@ public class AdminDashboardRepository(DataContext context)
             .Union(reviewGroups.Select(x => x.Month))
             .Union(orderGroups.Select(x => x.Month))
             .Distinct()
+            .Where(month => month != "0001-01")
             .OrderBy(x => x)
             .ToList();
 
