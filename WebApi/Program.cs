@@ -1,3 +1,4 @@
+using Domain.DTOs.TimezoneDTO;
 using Hangfire;
 using Infrastructure.AutoMapper;
 using Infrastructure.Data;
@@ -53,6 +54,9 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<TimezoneSettings>(
+    builder.Configuration.GetSection("TimezoneSettings"));
 
 var app = builder.Build();
 

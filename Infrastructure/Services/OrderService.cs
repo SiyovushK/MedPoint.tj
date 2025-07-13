@@ -347,7 +347,7 @@ public class OrderService(
         {
             To = order.User.Email,
             Subject = "Reservation confirmation info",
-            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime.AddHours(5):HH\\:mm} is confirmed!"
+            Body = $"Hello {order.User.FirstName},\n\nYour reservation made to doctor {dto.DoctorName} on date {dto.Date} {dto.StartTime:HH\\:mm} is confirmed!"
         };
         await emailService.SendEmailAsync(emailDto);
 
