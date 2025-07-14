@@ -43,8 +43,11 @@ public class OrderService(
 
         // 3) Date check
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var maxDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1));
         if (createOrder.Date < today)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Date of reservation can't be in the past.");
+        if (createOrder.Date > maxDate)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Please select reservation date within a month.");
 
         var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
         if (createOrder.Date == today && createOrder.StartTime < nowTime)
@@ -134,8 +137,11 @@ public class OrderService(
 
         // 3) Date check
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var maxDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1));
         if (createOrder.Date < today)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Date of reservation can't be in the past.");
+        if (createOrder.Date > maxDate)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Please select reservation date within a month.");
 
         var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
         if (createOrder.Date == today && createOrder.StartTime < nowTime)
@@ -245,8 +251,46 @@ public class OrderService(
         return new Response<List<GetOrderDTO>>(getOrder);
     }
 
+    public async Task<Response<List<GetOrderDTO>>> GetUserOrdersFilteredAsync(UserOrderFilter filter)
+    {
+        if (filter.DateFrom.HasValue && filter.DateTo.HasValue && filter.DateFrom > filter.DateTo)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.BadRequest, "'DateFrom' cannot be after 'DateTo'.");
+
+        var user = await userRepository.GetByIdAsync(filter.UserId);
+        if (user == null)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"User with ID {filter.UserId} not found.");
+
+        var query = orderRepository
+            .GetAll()
+            .Where(r => r.UserId == filter.UserId);
+
+        if (filter.DateFrom.HasValue)
+            query = query.Where(r => r.Date >= filter.DateFrom.Value);
+
+        if (filter.DateTo.HasValue)
+            query = query.Where(r => r.Date <= filter.DateTo.Value);
+
+        if (filter.OrderStatus.HasValue)
+            query = query.Where(r => r.OrderStatus == filter.OrderStatus.Value);
+
+        var orders = await query
+            .OrderByDescending(q => q.StartTime)
+            .ToListAsync();
+
+        if (orders == null)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for user id {filter.UserId}.");
+
+        var getOrdersDto = mapper.Map<List<GetOrderDTO>>(orders);
+
+        return new Response<List<GetOrderDTO>>(getOrdersDto);
+    }
+
     public async Task<Response<List<GetOrderDTO>>> GetDoctorOrdersAsync(int doctorId)
     {
+        var doctor = await doctorRepository.GetByIdAsync(doctorId);
+        if (doctor == null)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"Doctor with ID {doctorId} not found.");
+
         var orders = await orderRepository.GetByDoctorIdAsync(doctorId);
         if (orders == null)
             return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for doctor id {doctorId}.");
@@ -254,6 +298,51 @@ public class OrderService(
         var getOrder = mapper.Map<List<GetOrderDTO>>(orders);
 
         return new Response<List<GetOrderDTO>>(getOrder);
+    }
+
+    public async Task<Response<List<GetOrderDTO>>> GetDoctorOrdersFilteredAsync(DoctorOrderFilter filter)
+    {
+        if (filter.DateFrom.HasValue && filter.DateTo.HasValue && filter.DateFrom > filter.DateTo)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.BadRequest, "'DateFrom' cannot be after 'DateTo'.");
+
+        var doctor = await doctorRepository.GetByIdAsync(filter.DoctorId);
+        if (doctor == null)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"Doctor with ID {filter.DoctorId} not found.");
+
+        var query = orderRepository
+            .GetAll()
+            .Where(r => r.DoctorId == filter.DoctorId);
+
+        if (filter.DateFrom.HasValue)
+            query = query.Where(r => r.Date >= filter.DateFrom.Value);
+
+        if (filter.DateTo.HasValue)
+            query = query.Where(r => r.Date <= filter.DateTo.Value);
+
+        if (filter.OrderStatus.HasValue)
+            query = query.Where(r => r.OrderStatus == filter.OrderStatus.Value);
+
+        var orders = await query
+            .OrderByDescending(q => q.StartTime)
+            .ToListAsync();
+
+        if (orders == null)
+            return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for doctor id {filter.DoctorId}.");
+
+        var getOrdersDto = mapper.Map<List<GetOrderDTO>>(orders);
+
+        return new Response<List<GetOrderDTO>>(getOrdersDto);
+    }
+
+    public async Task<Response<List<OrderStatisticsDTO>>> GetDoctorsOrderStatisticsAsync(int doctorId)
+    {
+        var doctor = await doctorRepository.GetByIdAsync(doctorId);
+        if (doctor == null)
+            return new Response<List<OrderStatisticsDTO>>(HttpStatusCode.NotFound, $"Doctor with ID {doctorId} not found.");
+
+        var orders = await orderRepository.GetMonthlyStatisticsAsync(doctorId);
+
+        return new Response<List<OrderStatisticsDTO>>(orders);
     }
 
     public async Task<Response<List<GetOrderDTO>>> GetAllAsync(OrderFilter filter)
