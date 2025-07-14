@@ -53,11 +53,35 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return StatusCode((int)result.StatusCode, result); 
     }
 
+    [HttpGet("User-orders-filtered")]
+    [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<List<GetOrderDTO>>>> GetUserOrdersFilteredAsync([FromQuery] UserOrderFilter filter)
+    {
+        var result = await orderService.GetUserOrdersFilteredAsync(filter);
+        return StatusCode((int)result.StatusCode, result); 
+    }
+
     [HttpGet("Doctor-orders")]
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
     public async Task<ActionResult<Response<List<GetOrderDTO>>>> GetDoctorOrdersAsync(int doctorId)
     {
         var result = await orderService.GetDoctorOrdersAsync(doctorId);
+        return StatusCode((int)result.StatusCode, result); 
+    }
+
+    [HttpGet("Doctor-orders-filtered")]
+    [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<List<GetOrderDTO>>>> GetDoctorOrdersFilteredAsync([FromQuery] DoctorOrderFilter filter)
+    {
+        var result = await orderService.GetDoctorOrdersFilteredAsync(filter);
+        return StatusCode((int)result.StatusCode, result); 
+    }
+
+    [HttpGet("Doctor-orders-statistics")]
+    [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
+    public async Task<ActionResult<Response<List<OrderStatisticsDTO>>>> GetDoctorsOrderStatisticsAsync(int doctorId)
+    {
+        var result = await orderService.GetDoctorsOrderStatisticsAsync(doctorId);
         return StatusCode((int)result.StatusCode, result); 
     }
 
