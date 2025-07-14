@@ -18,5 +18,9 @@ public interface IOrderService
     Task<Response<GetOrderDTO>> CancelOrderByUserAsync(int orderId, ClaimsPrincipal userClaims);
 
     Task<Response<List<GetOrderDTO>>> GetUserOrdersAsync(int userId);
+    Task<Response<List<GetOrderDTO>>> GetUserOrdersFilteredAsync(UserOrderFilter filter);
+    
     Task<Response<List<GetOrderDTO>>> GetDoctorOrdersAsync(int doctorId);
+    Task<Response<List<OrderStatisticsDTO>>> GetDoctorsOrderStatisticsAsync(int doctorId);
+    Task<Response<List<GetOrderDTO>>> GetDoctorOrdersFilteredAsync(DoctorOrderFilter filter);
 }
