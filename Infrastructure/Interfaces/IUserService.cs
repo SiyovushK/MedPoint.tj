@@ -9,7 +9,7 @@ namespace Infrastructure.Interfaces;
 public interface IUserService
 {
     Task<Response<GetUserDTO>> CreateAsync(CreateUserDTO createUser);
-    Task<Response<GetUserDTO>> UpdateAsync(int id, UpdateUserDTO updateUser);
+    Task<Response<GetUserDTO>> UpdateAsync(ClaimsPrincipal userClaims, int id, UpdateUserDTO updateUser);
     Task<Response<string>> DeleteAsync(int userId);
     Task<Response<string>> DeleteSelfAsync(ClaimsPrincipal userClaims);
     Task<Response<GetUserDTO>> GetByIdAsync(int userId);

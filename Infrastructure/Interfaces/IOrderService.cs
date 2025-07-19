@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.Filters;
 using Domain.Responses;
@@ -19,8 +20,9 @@ public interface IOrderService
 
     Task<Response<List<GetOrderDTO>>> GetUserOrdersAsync(int userId);
     Task<Response<List<GetOrderDTO>>> GetUserOrdersFilteredAsync(UserOrderFilter filter);
-    
+
     Task<Response<List<GetOrderDTO>>> GetDoctorOrdersAsync(int doctorId);
     Task<Response<List<OrderStatisticsDTO>>> GetDoctorsOrderStatisticsAsync(int doctorId);
     Task<Response<List<GetOrderDTO>>> GetDoctorOrdersFilteredAsync(DoctorOrderFilter filter);
+    Task<Response<List<DoctorTimeTable>>> GetDoctorDaySchedule(int doctorId, DateOnly date);
 }

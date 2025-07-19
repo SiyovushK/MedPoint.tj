@@ -1,3 +1,4 @@
+using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.Entities;
 using Domain.Enums;
@@ -49,7 +50,8 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
             .Include(r => r.User)
             .Include(r => r.Doctor)
             .Where(r => r.UserId == userId)
-            .OrderByDescending(r => r.StartTime)
+            .OrderByDescending(q => q.Date)
+            .ThenByDescending(q => q.StartTime)
             .ToListAsync();
     }
 
@@ -59,7 +61,19 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
             .Include(r => r.User)
             .Include(r => r.Doctor)
             .Where(r => r.DoctorId == doctorId)
-            .OrderByDescending(r => r.StartTime)
+            .OrderByDescending(q => q.Date)
+            .ThenByDescending(q => q.StartTime)
+            .ToListAsync();
+    }
+
+    public async Task<List<Order>> GetByDoctorScheduleAsync(int doctorId, DateOnly date)
+    {
+        return await context.Orders
+            .Include(r => r.User)
+            .Include(r => r.Doctor)
+            .Where(r => r.DoctorId == doctorId && r.Date == date)
+            .OrderByDescending(q => q.Date)
+            .ThenByDescending(q => q.StartTime)
             .ToListAsync();
     }
 

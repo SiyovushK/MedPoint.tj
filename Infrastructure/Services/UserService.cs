@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using AutoMapper;
+using Domain.Constants;
 using Domain.DTOs.EmailDTOs;
 using Domain.DTOs.UserDTOs;
 using Domain.Entities;
@@ -121,17 +122,23 @@ public class UserService(
         return new Response<GetUserDTO>(getUserDTO);
     }
 
-    public async Task<Response<GetUserDTO>> UpdateAsync(int id, UpdateUserDTO updateUser)
+    public async Task<Response<GetUserDTO>> UpdateAsync(ClaimsPrincipal userClaims, int id, UpdateUserDTO updateUser)
     {
         updateUser.FirstName = updateUser.FirstName.Trim();
         updateUser.LastName = updateUser.LastName.Trim();
         updateUser.Email = updateUser.Email.Trim();
         updateUser.Phone = updateUser.Phone.Trim();
 
+        var userIdStr = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+            return new Response<GetUserDTO>(HttpStatusCode.Unauthorized, "Invalid user identity");
+
         //Id
         var checkUser = await repository.GetByIdAsync(id);
         if (checkUser == null || checkUser.IsDeleted == true)
             return new Response<GetUserDTO>(HttpStatusCode.NotFound, $"User with id {id} is not found");
+        if (checkUser.Role == Roles.Admin && userId != id)
+            return new Response<GetUserDTO>(HttpStatusCode.Forbidden, $"Access denied. Only admin himself can update his account");
 
         //FirstName
         if (string.IsNullOrWhiteSpace(updateUser.FirstName))

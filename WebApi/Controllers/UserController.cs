@@ -24,7 +24,7 @@ public class UserController(IUserService userService) : ControllerBase
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetUserDTO>>> UpdateAsync(int id, UpdateUserDTO updateUser)
     {
-        var response = await userService.UpdateAsync(id, updateUser);
+        var response = await userService.UpdateAsync(User, id, updateUser);
         return StatusCode((int)response.StatusCode, response);
     }
 

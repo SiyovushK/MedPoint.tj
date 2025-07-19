@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Domain.Constants;
+using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.Filters;
 using Domain.Responses;
@@ -66,6 +67,14 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<ActionResult<Response<List<GetOrderDTO>>>> GetDoctorOrdersAsync(int doctorId)
     {
         var result = await orderService.GetDoctorOrdersAsync(doctorId);
+        return StatusCode((int)result.StatusCode, result); 
+    }
+
+    [HttpGet("Doctor-orders-availability")]
+    [Authorize]
+    public async Task<ActionResult<Response<List<DoctorTimeTable>>>> GetDoctorDaySchedule(int doctorId, DateOnly date)
+    {
+        var result = await orderService.GetDoctorDaySchedule(doctorId, date);
         return StatusCode((int)result.StatusCode, result); 
     }
 
