@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using AutoMapper;
+using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.EmailDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.Entities;
@@ -274,7 +275,8 @@ public class OrderService(
             query = query.Where(r => r.OrderStatus == filter.OrderStatus.Value);
 
         var orders = await query
-            .OrderByDescending(q => q.StartTime)
+            .OrderByDescending(q => q.Date)
+            .ThenByDescending(q => q.StartTime)
             .ToListAsync();
 
         if (orders == null)
@@ -323,7 +325,8 @@ public class OrderService(
             query = query.Where(r => r.OrderStatus == filter.OrderStatus.Value);
 
         var orders = await query
-            .OrderByDescending(q => q.StartTime)
+            .OrderByDescending(q => q.Date)
+            .ThenByDescending(q => q.StartTime)
             .ToListAsync();
 
         if (orders == null)
@@ -343,6 +346,51 @@ public class OrderService(
         var orders = await orderRepository.GetMonthlyStatisticsAsync(doctorId);
 
         return new Response<List<OrderStatisticsDTO>>(orders);
+    }
+
+
+    private readonly TimeOnly _defaultWorkStartTime = new TimeOnly(8, 0);
+    private readonly TimeOnly _defaultWorkEndTime = new TimeOnly(18, 0);
+    private readonly int _defaultSlotDurationMinutes = 30;
+
+    public async Task<Response<List<DoctorTimeTable>>> GetDoctorDaySchedule(int doctorId, DateOnly date)
+    {
+        var reservedOrders = await orderRepository.GetByDoctorScheduleAsync(doctorId, date);
+
+        var occupiedTimes = new HashSet<TimeOnly>();
+        foreach (var order in reservedOrders)
+        {
+            if (order.OrderStatus == OrderStatus.Pending || order.OrderStatus == OrderStatus.Active)
+            {
+                var currentTime = order.StartTime;
+
+                while (currentTime < order.EndTime)
+                {
+                    occupiedTimes.Add(currentTime);
+                    currentTime = currentTime.AddMinutes(_defaultSlotDurationMinutes);
+                }
+            }
+        }
+
+        var fullDaySchedule = new List<DoctorTimeTable>();
+        var currentSlotTime = _defaultWorkStartTime;
+
+        while (currentSlotTime < _defaultWorkEndTime)
+        {
+            var status = occupiedTimes.Contains(currentSlotTime) ? OrderTimeStatus.Reserved : OrderTimeStatus.Available;
+
+            fullDaySchedule.Add(new DoctorTimeTable
+            {
+                DoctorId = doctorId,
+                Date = date,
+                Time = currentSlotTime,
+                Status = status
+            });
+
+            currentSlotTime = currentSlotTime.AddMinutes(_defaultSlotDurationMinutes);
+        }
+
+        return new Response<List<DoctorTimeTable>>(fullDaySchedule);
     }
 
     public async Task<Response<List<GetOrderDTO>>> GetAllAsync(OrderFilter filter)
@@ -401,7 +449,10 @@ public class OrderService(
         if (filter.OrderStatus.HasValue)
             query = query.Where(r => r.OrderStatus == filter.OrderStatus.Value);
 
-        var orders = await query.ToListAsync();
+        var orders = await query
+            .OrderByDescending(q => q.Date)
+            .ThenByDescending(q => q.StartTime)
+            .ToListAsync();
 
         var getOrdersDto = mapper.Map<List<GetOrderDTO>>(orders);
 
