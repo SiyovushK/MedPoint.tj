@@ -88,7 +88,7 @@ public class AuthService(
         if (string.IsNullOrWhiteSpace(registerDto.Password))
             return new Response<string>(HttpStatusCode.BadRequest, "Password can't be empty");
 
-        if (registerDto.Password.Length < 4)
+        if (registerDto.Password.Length < 6)
             return new Response<string>(HttpStatusCode.BadRequest, "Password must contain 4 symbols or more");
 
         if (!Regex.IsMatch(registerDto.Password, @"^[a-zA-Z0-9]+$"))
