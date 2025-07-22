@@ -1,5 +1,3 @@
-using System.Net;
-using System.Security.Claims;
 using Domain.DTOs.AdminDashboardDTOs;
 using Domain.DTOs.DoctorDTOs;
 using Domain.Responses;
@@ -9,8 +7,7 @@ using Infrastructure.Repositories;
 namespace Infrastructure.Services;
 
 public class AdminDashboardService
-    (AdminDashboardRepository adminDashboard,
-    DoctorRepository doctorRepository) : IAdminDashboardService
+    (AdminDashboardRepository adminDashboard) : IAdminDashboardService
 {
     public async Task<Response<CountStatisticsDTO>> GetCountStatistics()
     {

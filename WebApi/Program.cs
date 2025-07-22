@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.WebHost.UseUrls("http://147.45.146.15:5063");
+builder.WebHost.UseUrls("http://147.45.146.15:5063");
 
 builder.Services.AddCors(options =>
 {
