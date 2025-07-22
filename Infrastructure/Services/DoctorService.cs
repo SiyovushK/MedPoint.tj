@@ -463,4 +463,14 @@ public class DoctorService(
 
         return new Response<List<SpecializationDTO>>(specializations);
     }
+
+    public async Task<Response<DoctorStatisticsDTO>> GetDoctorStatisticsAsync(int doctorId)
+    {
+        var doctor = await doctorRepository.GetByIdAsync(doctorId);
+        if (doctor == null || doctor.IsDeleted)
+            return new Response<DoctorStatisticsDTO>(HttpStatusCode.NotFound, $"Doctor with id {doctorId} is not found");
+            
+        var getPopularDoctors = await doctorRepository.GetDoctorStatistics(doctorId);
+        return new Response<DoctorStatisticsDTO>(getPopularDoctors);
+    }
 }

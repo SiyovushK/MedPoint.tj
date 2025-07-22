@@ -30,7 +30,7 @@ public class AdminDashboardRepository(DataContext context)
         var users = await context.Users.Select(u => u.CreatedAt).ToListAsync();
         var reviews = await context.Reviews.Select(r => r.CreatedAt).ToListAsync();
         var orders = await context.Orders.Select(o => o.CreatedAt).ToListAsync();
-        
+
         var doctorGroups = doctors
             .GroupBy(d => d.ToString("yyyy-MM"))
             .Select(g => new { Month = g.Key, Count = g.Count() })
