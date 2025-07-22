@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Domain.DTOs.AdminDashboardDTOs;
 using Domain.DTOs.DoctorDTOs;
 using Domain.Responses;

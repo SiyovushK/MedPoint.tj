@@ -1,6 +1,5 @@
 using Domain.DTOs.AdminDashboardDTOs;
 using Domain.DTOs.DoctorDTOs;
-using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
