@@ -76,6 +76,13 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpGet("Doctor-statistics")]
+    public async Task<ActionResult<Response<DoctorStatisticsDTO>>> GetDoctorStatisticsAsync(int doctorId)
+    { 
+        var result = await doctorService.GetDoctorStatisticsAsync(doctorId);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
     [HttpGet("specializations")]
     [AllowAnonymous]
     public async Task<ActionResult<Response<List<SpecializationDTO>>>> GetSpecializations()
