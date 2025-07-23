@@ -464,11 +464,11 @@ public class DoctorService(
         return new Response<List<SpecializationDTO>>(specializations);
     }
 
-    public async Task<Response<DoctorStatisticsDTO>> GetDoctorStatisticsAsync(int doctorId)
+    public async Task<Response<DoctorStatisticsDTO>> GetDoctorStatisticsAsync(ClaimsPrincipal doctorClaims)
     {
-        var doctor = await doctorRepository.GetByIdAsync(doctorId);
-        if (doctor == null || doctor.IsDeleted)
-            return new Response<DoctorStatisticsDTO>(HttpStatusCode.NotFound, $"Doctor with id {doctorId} is not found");
+        var doctorIdClaim = doctorClaims.FindFirst(ClaimTypes.NameIdentifier);
+        if (doctorIdClaim == null || !int.TryParse(doctorIdClaim.Value, out int doctorId))
+            return new Response<DoctorStatisticsDTO>(HttpStatusCode.Unauthorized, "Doctor ID not found or invalid in token.");
             
         var getPopularDoctors = await doctorRepository.GetDoctorStatistics(doctorId);
         return new Response<DoctorStatisticsDTO>(getPopularDoctors);

@@ -77,9 +77,10 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
     }
 
     [HttpGet("Doctor-statistics")]
-    public async Task<ActionResult<Response<DoctorStatisticsDTO>>> GetDoctorStatisticsAsync(int doctorId)
-    { 
-        var result = await doctorService.GetDoctorStatisticsAsync(doctorId);
+    [Authorize(Roles = Roles.Doctor)]
+    public async Task<ActionResult<Response<DoctorStatisticsDTO>>> GetDoctorStatisticsAsync()
+    {
+        var result = await doctorService.GetDoctorStatisticsAsync(User);
         return StatusCode((int)result.StatusCode, result);
     }
 
