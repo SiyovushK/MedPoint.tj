@@ -34,7 +34,7 @@ public static class DefaultUser
         }
 
         // Doctor
-        var doctorEmail = "kurbanovs397@gmail.com";
+        var doctorEmail = "JohnDoesMail@gmail.com";
         var doctorPhone = "018581313";
 
         var emailCheckDoctor = await context.Doctors.FirstOrDefaultAsync(c => c.Email == doctorEmail);
@@ -44,8 +44,8 @@ public static class DefaultUser
         {
             var doctor = new Doctor
             {
-                FirstName = "Doctor",
-                LastName = "Test",
+                FirstName = "John",
+                LastName = "Doe",
                 Phone = doctorPhone,
                 Email = doctorEmail,
                 Description = "Really good description",

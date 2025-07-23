@@ -1,3 +1,4 @@
+using Domain.Constants;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
@@ -27,7 +28,9 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
 
     public IQueryable<User> GetAll()
     {
-        return context.Users.AsQueryable();
+        return context.Users
+            .Where(u => u.Role == Roles.User)
+            .AsQueryable();
     }
 
     public async Task<User?> GetByIdAsync(int id)
