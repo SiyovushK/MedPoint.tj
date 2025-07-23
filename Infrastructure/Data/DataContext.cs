@@ -49,10 +49,10 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
             entity.Property(d => d.Description)
                 .HasMaxLength(500);
 
-            _ = modelBuilder.Entity<Doctor>()
-                .HasMany(d => d.Schedules)
+            entity.HasMany(d => d.Schedules)
                 .WithOne(s => s.Doctor)
-                .HasForeignKey(s => s.DoctorId);
+                .HasForeignKey(s => s.DoctorId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(d => d.Orders)
                 .WithOne(o => o.Doctor)
