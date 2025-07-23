@@ -48,8 +48,8 @@ public static class DefaultUser
                 LastName = "Doe",
                 Phone = doctorPhone,
                 Email = doctorEmail,
-                Description = "Really good description",
-                Specialization = new[] { DoctorSpecialization.MiddleDoctor }
+                Description = "Hello! My name is John Doe and I am a professional dentist with more than 10 years of experience.",
+                Specialization = new[] { DoctorSpecialization.GeneralPractitioner }
             };
 
             doctor.PasswordHash = passwordHasherDoctor.HashPassword(doctor, "doctor");
