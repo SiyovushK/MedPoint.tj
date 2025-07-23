@@ -19,5 +19,5 @@ public interface IDoctorService
     Task<Response<string>> UploadOrUpdateProfileImageAsync(ClaimsPrincipal doctorClaims, IFormFile file);
     Task<Response<string>> DeleteProfileImageAsync(ClaimsPrincipal doctorClaims);
     Task<Response<List<SpecializationDTO>>> GetSpecializationsAsync();
-    Task<Response<DoctorStatisticsDTO>> GetDoctorStatisticsAsync(int doctorId);
+    Task<Response<DoctorStatisticsDTO>> GetDoctorStatisticsAsync(ClaimsPrincipal doctorClaims);
 }
