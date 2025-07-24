@@ -23,12 +23,10 @@ public class AdminDashboardRepository(DataContext context)
         };
     }
 
-    public async Task<List<MonthlyCountStatistics>> GetMonthlyStatisticsAsync()
+    public async Task<List<UsersDoctorsStats>> GetMonthlyStatisticsUsersAsync()
     {
         var doctors = await context.Doctors.Select(d => d.CreatedAt).ToListAsync();
         var users = await context.Users.Select(u => u.CreatedAt).ToListAsync();
-        var reviews = await context.Reviews.Select(r => r.CreatedAt).ToListAsync();
-        var orders = await context.Orders.Select(o => o.CreatedAt).ToListAsync();
 
         var doctorGroups = doctors
             .GroupBy(d => d.ToString("yyyy-MM"))
@@ -40,6 +38,33 @@ public class AdminDashboardRepository(DataContext context)
             .Select(g => new { Month = g.Key, Count = g.Count() })
             .ToList();
 
+        var allMonths = doctorGroups.Select(x => x.Month)
+            .Union(userGroups.Select(x => x.Month))
+            .Distinct()
+            .Where(month => month != "0001-01")
+            .OrderBy(x => x)
+            .ToList();
+
+        var stats = new List<UsersDoctorsStats>();
+
+        foreach (var month in allMonths)
+        {
+            stats.Add(new UsersDoctorsStats
+            {
+                Month = month,
+                DoctorsCount = doctorGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0,
+                UsersCount = userGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0,
+            });
+        }
+
+        return stats;
+    }
+
+    public async Task<List<OrdersReviewsCount>> GetMonthlyStatisticsOrdersAsync()
+    {
+        var reviews = await context.Reviews.Select(r => r.CreatedAt).ToListAsync();
+        var orders = await context.Orders.Select(o => o.CreatedAt).ToListAsync();
+
         var reviewGroups = reviews
             .GroupBy(r => r.ToString("yyyy-MM"))
             .Select(g => new { Month = g.Key, Count = g.Count() })
@@ -50,24 +75,20 @@ public class AdminDashboardRepository(DataContext context)
             .Select(g => new { Month = g.Key, Count = g.Count() })
             .ToList();
 
-        var allMonths = doctorGroups.Select(x => x.Month)
-            .Union(userGroups.Select(x => x.Month))
+        var allMonths = orderGroups.Select(x => x.Month)
             .Union(reviewGroups.Select(x => x.Month))
-            .Union(orderGroups.Select(x => x.Month))
             .Distinct()
             .Where(month => month != "0001-01")
             .OrderBy(x => x)
             .ToList();
 
-        var stats = new List<MonthlyCountStatistics>();
+        var stats = new List<OrdersReviewsCount>();
 
         foreach (var month in allMonths)
         {
-            stats.Add(new MonthlyCountStatistics
+            stats.Add(new OrdersReviewsCount
             {
                 Month = month,
-                DoctorsCount = doctorGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0,
-                UsersCount = userGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0,
                 ReviewsCount = reviewGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0,
                 OrdersCount = orderGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0
             });
