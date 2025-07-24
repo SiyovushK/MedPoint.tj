@@ -15,10 +15,16 @@ public class AdminDashboardService
         return new Response<CountStatisticsDTO>(getStatistics);
     }
 
-    public async Task<Response<List<MonthlyCountStatistics>>> GetMonthlyCountStatistics()
+    public async Task<Response<List<UsersDoctorsStats>>> GetMonthlyCountStatisticsUsers()
     {
-        var getStatistics = await adminDashboard.GetMonthlyStatisticsAsync();
-        return new Response<List<MonthlyCountStatistics>>(getStatistics);
+        var getStatistics = await adminDashboard.GetMonthlyStatisticsUsersAsync();
+        return new Response<List<UsersDoctorsStats>>(getStatistics);
+    }
+
+    public async Task<Response<List<OrdersReviewsCount>>> GetMonthlyCountStatisticsOrders()
+    {
+        var getStatistics = await adminDashboard.GetMonthlyStatisticsOrdersAsync();
+        return new Response<List<OrdersReviewsCount>>(getStatistics);
     }
 
     public async Task<Response<List<PopularDoctorDTO>>> GetPopularDoctors()

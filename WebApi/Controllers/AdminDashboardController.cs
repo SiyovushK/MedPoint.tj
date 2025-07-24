@@ -20,10 +20,17 @@ public class AdminDashboardController(IAdminDashboardService adminDashboard) : C
         return StatusCode((int)result.StatusCode, result);
     }
 
-    [HttpGet("Monthly-count-stats")]
-    public async Task<ActionResult<Response<List<MonthlyCountStatistics>>>> GetMonthlyCountStatistics()
+    [HttpGet("Monthly-count-stats-Users-Doctors")]
+    public async Task<ActionResult<Response<List<OrdersReviewsCount>>>> GetMonthlyCountStatisticsUsers()
     {
-        var result = await adminDashboard.GetMonthlyCountStatistics();
+        var result = await adminDashboard.GetMonthlyCountStatisticsOrders();
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [HttpGet("Monthly-count-stats-Orders-Reviews")]
+    public async Task<ActionResult<Response<List<UsersDoctorsStats>>>> GetMonthlyCountStatisticsOrders()
+    {
+        var result = await adminDashboard.GetMonthlyCountStatisticsUsers();
         return StatusCode((int)result.StatusCode, result);
     }
 
