@@ -48,7 +48,7 @@ public static class DefaultUser
                 LastName = "Doe",
                 Phone = doctorPhone,
                 Email = doctorEmail,
-                Description = "Hello! My name is John Doe and I am a professional dentist with more than 10 years of experience.",
+                Description = "Опытный семейный врач с более чем 10-летним стажем. Джон Доу специализируется на общей диагностике, профилактике заболеваний и ведении пациентов всех возрастов. Всегда готов оказать квалифицированную медицинскую помощь.",
                 Specialization = new[] { DoctorSpecialization.GeneralPractitioner }
             };
 

@@ -12,6 +12,14 @@ namespace WebApi.Controllers;
 [Route("api/[controller]")]
 public class ReviewController(IReviewService reviewService) : ControllerBase
 {
+    [HttpPost("Reviews-create")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Response<GetReviewDTO>>> CreateReviewsAsync(CreateReviewsAdminDTO createReview)
+    {
+        var result = await reviewService.CreateReviewsAsync(createReview);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
     [HttpPost]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
     public async Task<ActionResult<Response<GetReviewDTO>>> CreateAsync(CreateReviewDTO createReview)

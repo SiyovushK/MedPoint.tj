@@ -7,6 +7,7 @@ namespace Infrastructure.Interfaces;
 
 public interface IReviewService
 {
+    Task<Response<GetReviewDTO>> CreateReviewsAsync(CreateReviewsAdminDTO createReview);
     Task<Response<GetReviewDTO>> CreateAsync(ClaimsPrincipal userClaims, CreateReviewDTO createReview);
     Task<Response<GetReviewDTO>> UpdateAsync(int reviewId, ClaimsPrincipal userClaims, UpdateReviewDTO updateReview);
     Task<Response<string>> DeleteAsync(int reviewId);
