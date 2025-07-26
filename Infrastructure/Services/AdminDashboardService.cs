@@ -32,4 +32,22 @@ public class AdminDashboardService
         var getPopularDoctors = await adminDashboard.GetPopularDoctors();
         return new Response<List<PopularDoctorDTO>>(getPopularDoctors);
     }
+
+    public async Task<Response<List<MonthComparisonDTO>>> GetChangeByMonthInfoAsync()
+    {
+        var usersStats = await adminDashboard.GetUsersChangeByMonth();
+        var doctorsStats = await adminDashboard.GetDoctorsChangeByMonth();
+        var ordersStats = await adminDashboard.GetOrdersChangeByMonth();
+        var reviewsStats = await adminDashboard.GetReviewsChangeByMonth();
+
+        var stats = new List<MonthComparisonDTO>
+        {
+            usersStats,
+            doctorsStats,
+            ordersStats,
+            reviewsStats
+        };
+
+        return new Response<List<MonthComparisonDTO>>(stats);
+    }
 } 

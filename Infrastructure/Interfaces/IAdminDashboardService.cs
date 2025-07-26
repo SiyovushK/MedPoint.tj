@@ -10,4 +10,5 @@ public interface IAdminDashboardService
     Task<Response<List<UsersDoctorsStats>>> GetMonthlyCountStatisticsUsers();
     Task<Response<List<OrdersReviewsCount>>> GetMonthlyCountStatisticsOrders();
     Task<Response<List<PopularDoctorDTO>>> GetPopularDoctors();
+    Task<Response<List<MonthComparisonDTO>>> GetChangeByMonthInfoAsync();
 } 

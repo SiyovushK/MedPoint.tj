@@ -112,4 +112,168 @@ public class AdminDashboardRepository(DataContext context)
 
         return popularDoctors;
     }
+
+    public async Task<MonthComparisonDTO> GetUsersChangeByMonth()
+    {
+        int previousMonth = await context.Users
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-2) &&
+                        u.CreatedAt <= DateTime.UtcNow.AddMonths(-1))
+            .CountAsync();
+
+        int currentMonth = await context.Users
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-1) &&
+                        u.CreatedAt <= DateTime.UtcNow)
+            .CountAsync();
+
+        double percentageChange;
+
+        if (previousMonth == 0)
+        {
+            if (currentMonth == 0)
+            {
+                percentageChange = 0.0;
+            }
+            else
+            {
+                percentageChange = 100.0;
+            }
+        }
+        else
+        {
+            percentageChange = ((double)(currentMonth - previousMonth) / previousMonth) * 100.0;
+        }
+
+        var stats = new MonthComparisonDTO
+        {
+            Category = "Users",
+            Current = currentMonth,
+            Previous = previousMonth,
+            PercenteDifference = percentageChange 
+        };
+
+        return stats;
+    }
+
+    public async Task<MonthComparisonDTO> GetDoctorsChangeByMonth()
+    {
+        int previousMonth = await context.Doctors
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-2) &&
+                        u.CreatedAt <= DateTime.UtcNow.AddMonths(-1))
+            .CountAsync();
+
+        int currentMonth = await context.Doctors
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-1) &&
+                        u.CreatedAt <= DateTime.UtcNow)
+            .CountAsync();
+
+        double percentageChange;
+
+        if (previousMonth == 0)
+        {
+            if (currentMonth == 0)
+            {
+                percentageChange = 0.0;
+            }
+            else
+            {
+                percentageChange = 100.0;
+            }
+        }
+        else
+        {
+            percentageChange = ((double)(currentMonth - previousMonth) / previousMonth) * 100.0;
+        }
+
+        var stats = new MonthComparisonDTO
+        {
+            Category = "Doctors",
+            Current = currentMonth,
+            Previous = previousMonth,
+            PercenteDifference = percentageChange
+        };
+
+        return stats;
+    }
+
+    public async Task<MonthComparisonDTO> GetOrdersChangeByMonth()
+    {
+        int previousMonth = await context.Orders
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-2) &&
+                        u.CreatedAt <= DateTime.UtcNow.AddMonths(-1))
+            .CountAsync();
+
+        int currentMonth = await context.Orders
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-1) &&
+                        u.CreatedAt <= DateTime.UtcNow)
+            .CountAsync();
+
+        double percentageChange;
+
+        if (previousMonth == 0)
+        {
+            if (currentMonth == 0)
+            {
+                percentageChange = 0.0;
+            }
+            else
+            {
+                percentageChange = 100.0;
+            }
+        }
+        else
+        {
+            percentageChange = ((double)(currentMonth - previousMonth) / previousMonth) * 100.0;
+        }
+
+        var stats = new MonthComparisonDTO
+        {
+            Category = "Orders",
+            Current = currentMonth,
+            Previous = previousMonth,
+            PercenteDifference = percentageChange
+        };
+
+        return stats;
+    }
+
+    public async Task<MonthComparisonDTO> GetReviewsChangeByMonth()
+    {
+        int previousMonth = await context.Reviews
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-2) &&
+                        u.CreatedAt <= DateTime.UtcNow.AddMonths(-1))
+            .CountAsync();
+
+        int currentMonth = await context.Reviews
+            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-1) &&
+                        u.CreatedAt <= DateTime.UtcNow)
+            .CountAsync();
+
+        double percentageChange;
+
+        if (previousMonth == 0)
+        {
+            if (currentMonth == 0)
+            {
+                percentageChange = 0.0;
+            }
+            else
+            {
+                percentageChange = 100.0;
+            }
+        }
+        else
+        {
+            percentageChange = ((double)(currentMonth - previousMonth) / previousMonth) * 100.0;
+        }
+
+        var stats = new MonthComparisonDTO
+        {
+            Category = "Reviews",
+            Current = currentMonth,
+            Previous = previousMonth,
+            PercenteDifference = percentageChange
+        };
+
+        return stats;
+    }
 }
