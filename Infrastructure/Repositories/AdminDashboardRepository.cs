@@ -148,7 +148,7 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Users",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange 
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
@@ -189,7 +189,7 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Doctors",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
@@ -230,7 +230,7 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Orders",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
@@ -271,7 +271,7 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Reviews",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
