@@ -8,10 +8,13 @@ using Infrastructure.Hangfire;
 using Infrastructure.Services.HelperServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using WebApi.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://147.45.146.15:5063");
+// builder.WebHost.UseUrls("http://147.45.146.15:5063");
+
+builder.Services.AddSignalR();
 
 builder.Services.AddCors(options =>
 {
@@ -92,11 +95,12 @@ app.UseHangfireDashboard();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
 app.UseCors("AllowFrontend");
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 app.Run();
