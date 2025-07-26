@@ -7,33 +7,25 @@ namespace WebApi.Chat;
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
+    public ChatHub(IChatService chatService) => _chatService = chatService;
 
-    public ChatHub(IChatService chatService)
+    // Создать/получить комнату
+    public Task<ChatRoomDto> OpenRoom(int doctorId)
     {
-        _chatService = chatService;
+        var userId = int.Parse(Context.UserIdentifier!);
+        return _chatService.OpenRoomAsync(userId, doctorId);
     }
 
-    // Клиент вызывает этот метод, чтобы отправить сообщение
+    // Войти в группу комнаты
+    public Task JoinRoom(int roomId)
+        => Groups.AddToGroupAsync(Context.ConnectionId, roomId.ToString());
+
+    // Отправить сообщение
     public async Task SendMessage(CreateChatMessageDto dto)
     {
-        // Получаем данные текущего пользователя
-        var senderId = Context.UserIdentifier;       // при настройке JWT‑идентификации
-        var senderName = Context.User?.Identity?.Name;
-
-        // Сохраняем в БД и получаем DTO с SentAt
-        var saved = await _chatService.SendMessageAsync(dto, senderId, senderName);
-
-        // Рассылаем всем в группе (комнате)
-        await Clients.Group(dto.RoomId)
-            .SendAsync("ReceiveMessage", saved);
-    }
-
-    // Клиент присоединяется к комнате (doctor или support)
-    public override async Task OnConnectedAsync()
-    {
-        var roomId = Context.GetHttpContext().Request.Query["roomId"];
-        if (!string.IsNullOrEmpty(roomId))
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-        await base.OnConnectedAsync();
+        var senderId = int.Parse(Context.UserIdentifier!);
+        var saved = await _chatService.SendMessageAsync(dto, senderId);
+        await Clients.Group(dto.RoomId.ToString())
+                     .SendAsync("ReceiveMessage", saved);
     }
 }
