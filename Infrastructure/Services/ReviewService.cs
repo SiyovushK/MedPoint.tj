@@ -44,7 +44,6 @@ public class ReviewService(
             return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Comment must contain between 1 and 500 characters.");
 
         var review = mapper.Map<Review>(createReview);
-        review.CreatedAt = DateTime.UtcNow.AddMonths(-3);
 
         if (await reviewRepository.AddAsync(review) == 0)
             return new Response<GetReviewDTO>(HttpStatusCode.InternalServerError, "Error when saving a review.");
