@@ -63,7 +63,7 @@ public class AdminDashboardRepository(DataContext context)
     public async Task<List<OrdersReviewsCount>> GetMonthlyStatisticsOrdersAsync()
     {
         var reviews = await context.Reviews.Select(r => r.CreatedAt).ToListAsync();
-        var orders = await context.Orders.Select(o => o.CreatedAt).ToListAsync();
+        var orders = await context.Orders.Select(o => o.Date).ToListAsync();
 
         var reviewGroups = reviews
             .GroupBy(r => r.ToString("yyyy-MM"))
@@ -148,7 +148,7 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Users",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange 
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
@@ -189,29 +189,33 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Doctors",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
     }
 
     public async Task<MonthComparisonDTO> GetOrdersChangeByMonth()
-    {
-        int previousMonth = await context.Orders
-            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-2) &&
-                        u.CreatedAt <= DateTime.UtcNow.AddMonths(-1))
+    { 
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var period2MonthsAgo = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-2));
+        var period1MonthAgo = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-1));
+
+        int previousMonthOrders = await context.Orders
+            .Where(o => o.Date >= period2MonthsAgo &&
+                        o.Date <= period1MonthAgo)
             .CountAsync();
 
-        int currentMonth = await context.Orders
-            .Where(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-1) &&
-                        u.CreatedAt <= DateTime.UtcNow)
+        int currentMonthOrders = await context.Orders
+            .Where(o => o.Date >= period1MonthAgo &&
+                        o.Date <= today)
             .CountAsync();
 
         double percentageChange;
 
-        if (previousMonth == 0)
+        if (previousMonthOrders == 0)
         {
-            if (currentMonth == 0)
+            if (currentMonthOrders == 0)
             {
                 percentageChange = 0.0;
             }
@@ -222,15 +226,15 @@ public class AdminDashboardRepository(DataContext context)
         }
         else
         {
-            percentageChange = ((double)(currentMonth - previousMonth) / previousMonth) * 100.0;
+            percentageChange = ((double)(currentMonthOrders - previousMonthOrders) / previousMonthOrders) * 100.0;
         }
 
         var stats = new MonthComparisonDTO
         {
             Category = "Orders",
-            Current = currentMonth,
-            Previous = previousMonth,
-            PercenteDifference = percentageChange
+            Current = currentMonthOrders,
+            Previous = previousMonthOrders,
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
@@ -271,7 +275,7 @@ public class AdminDashboardRepository(DataContext context)
             Category = "Reviews",
             Current = currentMonth,
             Previous = previousMonth,
-            PercenteDifference = percentageChange
+            PercenteDifference = percentageChange.ToString("F1")
         };
 
         return stats;
