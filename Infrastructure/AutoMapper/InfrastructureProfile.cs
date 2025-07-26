@@ -62,6 +62,7 @@ public class InfrastructureProfile : Profile
                 opt => opt.MapFrom(src => src.CreatedAt.AddHours(5)));
 
         CreateMap<CreateReviewDTO, Review>();
+        CreateMap<CreateReviewsAdminDTO, Review>();
         CreateMap<UpdateReviewDTO, Review>()
             .ForMember(dest => dest.Doctor, opt => opt.Ignore())
             .ForMember(dest => dest.User, opt => opt.Ignore());

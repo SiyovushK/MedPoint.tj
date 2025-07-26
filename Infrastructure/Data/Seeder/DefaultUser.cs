@@ -34,7 +34,7 @@ public static class DefaultUser
         }
 
         // Doctor
-        var doctorEmail = "kurbanovs397@gmail.com";
+        var doctorEmail = "JohnDoesMail@gmail.com";
         var doctorPhone = "018581313";
 
         var emailCheckDoctor = await context.Doctors.FirstOrDefaultAsync(c => c.Email == doctorEmail);
@@ -44,12 +44,12 @@ public static class DefaultUser
         {
             var doctor = new Doctor
             {
-                FirstName = "Doctor",
-                LastName = "Test",
+                FirstName = "John",
+                LastName = "Doe",
                 Phone = doctorPhone,
                 Email = doctorEmail,
-                Description = "Really good description",
-                Specialization = new[] { DoctorSpecialization.MiddleDoctor }
+                Description = "Опытный семейный врач с более чем 10-летним стажем. Джон Доу специализируется на общей диагностике, профилактике заболеваний и ведении пациентов всех возрастов. Всегда готов оказать квалифицированную медицинскую помощь.",
+                Specialization = new[] { DoctorSpecialization.GeneralPractitioner }
             };
 
             doctor.PasswordHash = passwordHasherDoctor.HashPassword(doctor, "doctor");

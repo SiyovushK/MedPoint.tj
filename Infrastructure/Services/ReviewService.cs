@@ -9,6 +9,7 @@ using Domain.Responses;
 using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace Infrastructure.Services;
 
@@ -18,6 +19,43 @@ public class ReviewService(
         UserRepository userRepository,
         ReviewRepository reviewRepository) : IReviewService
 {
+    public async Task<Response<GetReviewDTO>> CreateReviewsAsync(CreateReviewsAdminDTO createReview)
+    {
+        // User
+        var user = await userRepository.GetByIdAsync(createReview.UserId);
+        if (user == null || user.IsDeleted)
+            return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"User with ID {createReview.UserId} not found.");
+
+        // Doctor
+        Doctor? doctor = null;
+        if (createReview.DoctorId.HasValue)
+        {
+            doctor = await doctorRepository.GetByIdAsync(createReview.DoctorId.Value);
+            if (doctor == null || doctor.IsDeleted)
+                return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createReview.DoctorId} not found.");
+        }
+
+        // Rating
+        if (createReview.Rating < 1 || createReview.Rating > 5)
+            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Rating must be between 1 and 5.");
+
+        // Comment
+        if (createReview.Comment.Length < 1 || createReview.Comment.Length > 500)
+            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Comment must contain between 1 and 500 characters.");
+
+        var review = mapper.Map<Review>(createReview);
+
+        if (await reviewRepository.AddAsync(review) == 0)
+            return new Response<GetReviewDTO>(HttpStatusCode.InternalServerError, "Error when saving a review.");
+
+        var getReview = mapper.Map<GetReviewDTO>(review);
+        getReview.UserName = $"{user.FirstName} {user.LastName}";
+        if (doctor != null)
+            getReview.DoctorName = $"{doctor.FirstName} {doctor.LastName}";
+
+        return new Response<GetReviewDTO>(getReview);
+    }
+
     public async Task<Response<GetReviewDTO>> CreateAsync(ClaimsPrincipal userClaims, CreateReviewDTO createReview)
     {
         var userIdClaim = userClaims.FindFirst(ClaimTypes.NameIdentifier);
