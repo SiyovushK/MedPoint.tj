@@ -4,6 +4,8 @@ namespace Infrastructure.Interfaces;
 
 public interface IChatService
 {
-    Task<ChatMessageDto> SendMessageAsync(CreateChatMessageDto dto, string senderId, string senderName);
-    Task<List<ChatMessageDto>> GetHistoryAsync(string roomId, int take = 50);
+    Task<ChatRoomDto> OpenRoomAsync(int userId, int doctorId);
+    Task<List<ChatRoomDto>> ListDoctorRoomsAsync(int doctorId);
+    Task<ChatMessageDto> SendMessageAsync(CreateChatMessageDto dto, int senderId);
+    Task<List<ChatMessageDto>> GetMessagesAsync(int roomId, int take = 50);
 }

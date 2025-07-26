@@ -36,7 +36,8 @@ public static class DependencyInjection
         services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         services.AddScoped<AdminDashboardRepository>();
 
-        services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
+        services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         services.AddScoped<IChatService, ChatService>();
 
         services.AddScoped(typeof(IAuthRepository<>), typeof(AuthRepository<>));
