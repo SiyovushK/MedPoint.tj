@@ -40,4 +40,11 @@ public class AdminDashboardController(IAdminDashboardService adminDashboard) : C
         var result = await adminDashboard.GetPopularDoctors();
         return StatusCode((int)result.StatusCode, result);
     }
+
+    [HttpGet("Percentage-change-info")]
+    public async Task<ActionResult<Response<List<MonthComparisonDTO>>>> GetChangeByMonthInfoAsync()
+    { 
+        var result = await adminDashboard.GetChangeByMonthInfoAsync();
+        return StatusCode((int)result.StatusCode, result);
+    }
 }
