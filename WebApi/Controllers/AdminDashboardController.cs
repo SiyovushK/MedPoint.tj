@@ -21,16 +21,16 @@ public class AdminDashboardController(IAdminDashboardService adminDashboard) : C
     }
 
     [HttpGet("Monthly-count-stats-Users-Doctors")]
-    public async Task<ActionResult<Response<List<OrdersReviewsCount>>>> GetMonthlyCountStatisticsUsers()
+    public async Task<ActionResult<Response<List<UsersDoctorsStats>>>> GetMonthlyCountStatisticsUsers()
     {
-        var result = await adminDashboard.GetMonthlyCountStatisticsOrders();
+        var result = await adminDashboard.GetMonthlyCountStatisticsUsers();
         return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet("Monthly-count-stats-Orders-Reviews")]
-    public async Task<ActionResult<Response<List<UsersDoctorsStats>>>> GetMonthlyCountStatisticsOrders()
+    public async Task<ActionResult<Response<List<OrdersReviewsCount>>>> GetMonthlyCountStatisticsOrders()
     {
-        var result = await adminDashboard.GetMonthlyCountStatisticsUsers();
+        var result = await adminDashboard.GetMonthlyCountStatisticsOrders();
         return StatusCode((int)result.StatusCode, result);
     }
 

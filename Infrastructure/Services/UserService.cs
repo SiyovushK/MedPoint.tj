@@ -104,6 +104,7 @@ public class UserService(
         var user = mapper.Map<User>(createUser);
         user.PasswordHash = passwordHasher.HashPassword(user, createUser.Password);
         user.IsEmailVerified = true;
+        user.CreatedAt = DateTime.UtcNow.AddMonths(-1);
 
         if (await userRepository.AddAsync(user) == 0)
             return new Response<GetUserDTO>(HttpStatusCode.InternalServerError, "User registration error!");
