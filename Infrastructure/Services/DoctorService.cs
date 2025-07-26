@@ -103,7 +103,6 @@ public class DoctorService(
 
         var doctor = mapper.Map<Doctor>(createDoctor);
         doctor.PasswordHash = passwordHasher.HashPassword(doctor, createDoctor.Password);
-        doctor.CreatedAt = DateTime.UtcNow.AddMonths(-3);
 
         if (await doctorRepository.AddAsync(doctor) == 0)
             return new Response<GetDoctorDTO>(HttpStatusCode.InternalServerError, "Doctor registration error!");
