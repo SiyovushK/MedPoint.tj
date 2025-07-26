@@ -136,17 +136,17 @@ public class OrderService(
         if (!doctor.IsActive)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor with ID {createOrder.DoctorId} is not available at the moment.");
 
-        // // 3) Date check
-        // var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        // var maxDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1));
-        // if (createOrder.Date < today)
-        //     return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Date of reservation can't be in the past.");
-        // if (createOrder.Date > maxDate)
-        //     return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Please select reservation date within a month.");
+        // 3) Date check
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var maxDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1));
+        if (createOrder.Date < today)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Date of reservation can't be in the past.");
+        if (createOrder.Date > maxDate)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Please select reservation date within a month.");
 
-        // var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
-        // if (createOrder.Date == today && createOrder.StartTime < nowTime)
-        //     return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Start time can't be in the past.");
+        var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+        if (createOrder.Date == today && createOrder.StartTime < nowTime)
+            return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, "Start time can't be in the past.");
 
         // 5) Schedule of doctor
         var dayOfWeek = createOrder.Date.DayOfWeek;
