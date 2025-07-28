@@ -101,6 +101,46 @@ public class DoctorRepository(DataContext context) : IBaseRepository<Doctor, int
 
         return dto;
     }
+
+    public async Task<List<DoctorMonthlyStatistics>> GetMonthlyStatisticsOrdersAsync(int doctorId)
+    {
+        var doctor = await context.Doctors.Where(d => d.Id == doctorId).FirstOrDefaultAsync();
+        var reviews = await context.Reviews.Where(r => r.DoctorId == doctorId).Select(r => r.CreatedAt).ToListAsync();
+        var orders = await context.Orders.Where(r => r.DoctorId == doctorId).Select(o => o.Date).ToListAsync();
+
+        var reviewGroups = reviews
+            .GroupBy(r => r.ToString("yyyy-MM"))
+            .Select(g => new { Month = g.Key, Count = g.Count() })
+            .ToList();
+
+        var orderGroups = orders
+            .GroupBy(o => o.ToString("yyyy-MM"))
+            .Select(g => new { Month = g.Key, Count = g.Count() })
+            .ToList();
+
+        var allMonths = orderGroups.Select(x => x.Month)
+            .Union(reviewGroups.Select(x => x.Month))
+            .Distinct()
+            .Where(month => month != "0001-01")
+            .OrderBy(x => x)
+            .ToList();
+
+        var stats = new List<DoctorMonthlyStatistics>();
+
+        foreach (var month in allMonths)
+        {
+            stats.Add(new DoctorMonthlyStatistics
+            {
+                Month = month,
+                DoctorId = doctorId,
+                DoctorName = $"{doctor!.FirstName} {doctor.LastName}",
+                ReviewCount = reviewGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0,
+                OrderCount = orderGroups.FirstOrDefault(x => x.Month == month)?.Count ?? 0
+            });
+        }
+
+        return stats;
+    }
     
     public async Task<int> SaveChangesAsync()
     {

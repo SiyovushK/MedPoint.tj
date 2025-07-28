@@ -84,6 +84,14 @@ public class DoctorController(IDoctorService doctorService) : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpGet("Doctor-statistics-by-month")]
+    [Authorize(Roles = Roles.Doctor)]
+    public async Task<ActionResult<Response<List<DoctorMonthlyStatistics>>>> GetDoctorStatisticsByMonthAsync()
+    {
+        var result = await doctorService.GetDoctorStatisticsByMonthAsync(User);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
     [HttpGet("specializations")]
     [AllowAnonymous]
     public async Task<ActionResult<Response<List<SpecializationDTO>>>> GetSpecializations()
