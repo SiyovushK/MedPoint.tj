@@ -20,4 +20,5 @@ public interface IDoctorService
     Task<Response<string>> DeleteProfileImageAsync(ClaimsPrincipal doctorClaims);
     Task<Response<List<SpecializationDTO>>> GetSpecializationsAsync();
     Task<Response<DoctorStatisticsDTO>> GetDoctorStatisticsAsync(ClaimsPrincipal doctorClaims);
+    Task<Response<List<DoctorMonthlyStatistics>>> GetDoctorStatisticsByMonthAsync(ClaimsPrincipal doctorClaims);
 }

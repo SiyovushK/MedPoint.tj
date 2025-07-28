@@ -473,4 +473,14 @@ public class DoctorService(
         var getPopularDoctors = await doctorRepository.GetDoctorStatistics(doctorId);
         return new Response<DoctorStatisticsDTO>(getPopularDoctors);
     }
+
+    public async Task<Response<List<DoctorMonthlyStatistics>>> GetDoctorStatisticsByMonthAsync(ClaimsPrincipal doctorClaims)
+    {
+        var doctorIdClaim = doctorClaims.FindFirst(ClaimTypes.NameIdentifier);
+        if (doctorIdClaim == null || !int.TryParse(doctorIdClaim.Value, out int doctorId))
+            return new Response<List<DoctorMonthlyStatistics>>(HttpStatusCode.Unauthorized, "Doctor ID not found or invalid in token.");
+
+        var getPopularDoctors = await doctorRepository.GetMonthlyStatisticsOrdersAsync(doctorId);
+        return new Response<List<DoctorMonthlyStatistics>>(getPopularDoctors);
+    }
 }
