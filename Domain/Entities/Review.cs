@@ -19,6 +19,6 @@ public class Review
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; }
 
-    public Doctor Doctor { get; set; } = null!;
+    public Doctor? Doctor { get; set; }
     public User User { get; set; } = null!;
 }
