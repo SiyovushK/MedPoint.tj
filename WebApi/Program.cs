@@ -8,7 +8,7 @@ using Infrastructure.Hangfire;
 using Infrastructure.Services.HelperServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using WebApi.Chat;
+using WebApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,5 +102,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("/hubs/chat");
+
+app.MapHub<ChatHub>("/chathub");
 app.Run();

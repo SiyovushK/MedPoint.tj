@@ -6,6 +6,7 @@ namespace Domain.Entities;
 
 public class Doctor
 {
+    [Key]
     public int Id { get; set; }
     [Required, StringLength(50)]
     public string FirstName { get; set; } = string.Empty;
