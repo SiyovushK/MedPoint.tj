@@ -10,11 +10,19 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
     public DbSet<Order> Orders { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
-    public DbSet<ChatMessage> ChatMessages { get; set; }
-    public DbSet<ChatRoom> ChatRooms { get; set; }
+    public DbSet<Message> Messages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Content).IsRequired();
+        
+            entity.HasIndex(e => e.FromUserId);
+            entity.HasIndex(e => e.ToUserId);
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(u => u.Phone)
