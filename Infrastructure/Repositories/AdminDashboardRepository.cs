@@ -1,5 +1,6 @@
 using Domain.DTOs.AdminDashboardDTOs;
 using Domain.DTOs.DoctorDTOs;
+using Domain.Responses;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,22 @@ namespace Infrastructure.Repositories;
 
 public class AdminDashboardRepository(DataContext context)
 {
+    public async Task<Response<string>> DeleteAllDoctorsAsync()
+    {
+        var doctors = await context.Doctors
+            .Include(d => d.Schedules)
+            .ToListAsync();
+
+        if (!doctors.Any())
+            return new Response<string>("No doctors found.");
+
+        context.Doctors.RemoveRange(doctors);
+
+        await context.SaveChangesAsync();
+
+        return new Response<string>("All doctors deleted. Orders and reviews kept with DoctorId = null.");
+    }
+
     public async Task<CountStatisticsDTO> GetCountStatistics()
     {
         var usersCount = await context.Users.CountAsync();
