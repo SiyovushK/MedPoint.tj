@@ -67,12 +67,12 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
             entity.HasMany(d => d.Orders)
                 .WithOne(o => o.Doctor)
                 .HasForeignKey(o => o.DoctorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasMany(d => d.Reviews)
                 .WithOne(r => r.Doctor)
                 .HasForeignKey(r => r.DoctorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

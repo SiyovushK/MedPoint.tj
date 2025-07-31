@@ -1,11 +1,6 @@
-using System.Net;
 using System.Security.Claims;
-using Domain.Constants;
-using Domain.DTOs.ChatDTOs;
 using Domain.Entities;
-using Domain.Responses;
 using Infrastructure.Data;
-using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

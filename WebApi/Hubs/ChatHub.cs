@@ -1,9 +1,6 @@
-using Domain.DTOs.ChatDTOs;
 using Domain.Entities;
 using Infrastructure.Data;
-using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 

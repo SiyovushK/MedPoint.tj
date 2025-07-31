@@ -18,5 +18,5 @@ public class Order
     public bool ReminderSent { get; set; } = false;
 
     public User User { get; set; } = null!;
-    public Doctor Doctor { get; set; } = null!;
+    public Doctor? Doctor { get; set; }
 }
