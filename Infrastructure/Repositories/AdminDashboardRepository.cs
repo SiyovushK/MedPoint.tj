@@ -100,10 +100,11 @@ public class AdminDashboardRepository(DataContext context)
     public async Task<List<PopularDoctorDTO>> GetPopularDoctors()
     {
         var popularDoctors = await context.Orders
+            .Where(o => o.DoctorId != null)
             .GroupBy(o => new { o.DoctorId, o.Doctor.FirstName, o.Doctor.LastName })
             .Select(g => new PopularDoctorDTO
             {
-                DoctorId = g.Key.DoctorId,
+                DoctorId = g.Key.DoctorId.Value,
                 DoctorName = g.Key.FirstName + " " + g.Key.LastName,
                 OrderCount = g.Count()
             })
