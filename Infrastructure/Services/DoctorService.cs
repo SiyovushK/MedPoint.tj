@@ -48,8 +48,8 @@ public class DoctorService(
         if (string.IsNullOrWhiteSpace(createDoctor.LastName))
             return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name can't be empty.");
 
-        if (!createDoctor.LastName.All(char.IsLetterOrDigit))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name must not contain spaces or special characters.");
+        // if (!createDoctor.LastName.All(char.IsLetterOrDigit))
+        //     return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name must not contain spaces or special characters.");
 
         // Phone
         if (string.IsNullOrWhiteSpace(createDoctor.Phone))
@@ -120,9 +120,19 @@ public class DoctorService(
             if (!schedule.IsDayOff)
             {
                 schedule.WorkStart = new TimeOnly(8, 0);
-                schedule.WorkEnd = new TimeOnly(18, 0);
-                schedule.LunchStart = new TimeOnly(12, 0);
-                schedule.LunchEnd = new TimeOnly(13, 0);
+
+                if (dow == DayOfWeek.Saturday)
+                {
+                    schedule.WorkEnd = new TimeOnly(15, 0); 
+                    schedule.LunchStart = new TimeOnly(12, 0);
+                    schedule.LunchEnd = new TimeOnly(13, 0);
+                }
+                else
+                {
+                    schedule.WorkEnd = new TimeOnly(17, 0);
+                    schedule.LunchStart = new TimeOnly(12, 0);
+                    schedule.LunchEnd = new TimeOnly(13, 0);
+                }
             }
 
             await doctorScheduleRepository.AddAsync(schedule);
@@ -165,8 +175,8 @@ public class DoctorService(
         if (string.IsNullOrWhiteSpace(updateDoctor.LastName))
             return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name can't be empty.");
 
-        if (!updateDoctor.LastName.All(char.IsLetterOrDigit))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name must not contain spaces or special characters.");
+        // if (!updateDoctor.LastName.All(char.IsLetterOrDigit))
+        //     return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name must not contain spaces or special characters.");
 
         // Phone
         if (string.IsNullOrWhiteSpace(updateDoctor.Phone))

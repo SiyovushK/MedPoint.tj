@@ -18,7 +18,7 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Content).IsRequired();
-        
+
             entity.HasIndex(e => e.FromUserId);
             entity.HasIndex(e => e.ToUserId);
         });
@@ -56,9 +56,6 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
             entity.HasIndex(d => d.Phone)
                 .IsUnique();
 
-            entity.Property(d => d.Description)
-                .HasMaxLength(500);
-
             entity.HasMany(d => d.Schedules)
                 .WithOne(s => s.Doctor)
                 .HasForeignKey(s => s.DoctorId)
@@ -73,6 +70,11 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
                 .WithOne(r => r.Doctor)
                 .HasForeignKey(r => r.DoctorId)
                 .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.OwnsMany(d => d.Education, education =>
+            {
+                education.WithOwner();
+            });
         });
     }
 }

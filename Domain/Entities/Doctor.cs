@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Domain.Constants;
+using Domain.DTOs.DoctorDTOs;
 using Domain.Enums;
 
 namespace Domain.Entities;
@@ -16,8 +17,8 @@ public class Doctor
     public string Phone { get; set; } = string.Empty;
     [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
-    [StringLength(500)]
     public string Description { get; set; } = string.Empty;
+    public List<DoctorEducation>? Education { get; set; }
     public string Role { get; set; } = Roles.Doctor;
 
     [Required]

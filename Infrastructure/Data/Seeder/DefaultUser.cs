@@ -44,12 +44,12 @@ public static class DefaultUser
         {
             var doctor = new Doctor
             {
-                FirstName = "John",
-                LastName = "Doe",
+                FirstName = "Сиёвуш",
+                LastName = "Курбонов",
                 Phone = doctorPhone,
                 Email = doctorEmail,
                 Description = "Опытный семейный врач с более чем 10-летним стажем. Джон Доу специализируется на общей диагностике, профилактике заболеваний и ведении пациентов всех возрастов. Всегда готов оказать квалифицированную медицинскую помощь.",
-                Specialization = new[] { DoctorSpecialization.GeneralPractitioner }
+                Specialization = new[] { DoctorSpecialization.Терапевт }
             };
 
             doctor.PasswordHash = passwordHasherDoctor.HashPassword(doctor, "doctor");
