@@ -1,13 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Domain.Entities;
 
 public class Chat
 {
-    public string ChatId { get; set; } = string.Empty;
-    public int User1Id { get; set; }
-    public int User2Id { get; set; }
-    public string User1Name { get; set; } = string.Empty;
-    public string User2Name { get; set; } = string.Empty;
-    public DateTime LastMessageAt { get; set; }
-    public string LastMessagePreview { get; set; } = string.Empty;
-    public int UnreadCount { get; set; }
+    [Key]
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int DoctorId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [ForeignKey(nameof(UserId))]
+    public User User { get; set; } = null!;
+    [ForeignKey(nameof(DoctorId))]
+    public Doctor Doctor { get; set; } = null!;
+    public ICollection<Message> Messages { get; set; } = new List<Message>();
 }

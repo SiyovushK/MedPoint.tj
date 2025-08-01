@@ -33,6 +33,8 @@ public static class DependencyInjection
         services.AddScoped<IDoctorScheduleService, DoctorScheduleService>();
         services.AddScoped<IBaseRepository<DoctorSchedule, int>, DoctorScheduleRepository>();
 
+        services.AddScoped<IChatService, ChatService>();
+
         services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         services.AddScoped<AdminDashboardRepository>();
 
