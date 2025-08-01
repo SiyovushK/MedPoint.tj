@@ -17,8 +17,9 @@ public class CreateDoctorDTO
     [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    [StringLength(500)]
     public string Description { get; set; } = string.Empty;
+
+    public List<DoctorEducation>? Education { get; set; }
 
     [Required]
     public string Password { get; set; } = string.Empty;

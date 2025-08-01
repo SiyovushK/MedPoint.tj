@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250801053232_YeatToIsNullable")]
+    partial class YeatToIsNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
@@ -301,6 +304,9 @@ namespace Infrastructure.Migrations
                 {
                     b.OwnsMany("Domain.DTOs.DoctorDTOs.DoctorEducation", "Education", b1 =>
                         {
+                            b1.Property<int>("DoctorId")
+                                .HasColumnType("INTEGER");
+
                             b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("INTEGER");
@@ -309,18 +315,13 @@ namespace Infrastructure.Migrations
                                 .IsRequired()
                                 .HasColumnType("TEXT");
 
-                            b1.Property<int>("DoctorId")
-                                .HasColumnType("INTEGER");
-
                             b1.Property<short>("YearFrom")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<short?>("YearTo")
                                 .HasColumnType("INTEGER");
 
-                            b1.HasKey("Id");
-
-                            b1.HasIndex("DoctorId");
+                            b1.HasKey("DoctorId", "Id");
 
                             b1.ToTable("DoctorEducation");
 

@@ -17,7 +17,6 @@ public class UpdateDoctorDTO
     [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    [StringLength(500)]
     public string Description { get; set; } = string.Empty;
 
     [Required]

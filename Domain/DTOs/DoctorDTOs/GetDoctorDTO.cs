@@ -15,7 +15,9 @@ public class GetDoctorDTO
     public string Email { get; set; } = string.Empty;
 
     public string Description { get; set; } = string.Empty;
-
+    
+    public List<DoctorEducation>? Education { get; set; }
+    
     public DoctorSpecialization[] Specialization { get; set; } = [];
 
     public string? ProfileImageUrl { get; set; }
