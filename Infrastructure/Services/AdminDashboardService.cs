@@ -9,11 +9,6 @@ namespace Infrastructure.Services;
 public class AdminDashboardService
     (AdminDashboardRepository adminDashboard) : IAdminDashboardService
 {
-    public async Task<Response<string>> DeleteDoctors()
-    {
-        return await adminDashboard.DeleteAllDoctorsAsync();
-    }
-
     public async Task<Response<CountStatisticsDTO>> GetCountStatistics()
     {
         var getStatistics = await adminDashboard.GetCountStatistics();

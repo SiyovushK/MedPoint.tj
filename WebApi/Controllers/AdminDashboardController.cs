@@ -13,13 +13,6 @@ namespace WebApi.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class AdminDashboardController(IAdminDashboardService adminDashboard) : ControllerBase
 {
-    [HttpDelete]
-    public async Task<ActionResult<Response<string>>> DeleteDoctors()
-    {
-        var result = await adminDashboard.DeleteDoctors();
-        return StatusCode((int)result.StatusCode, result);
-    }
-
     [HttpGet("Count-stats")]
     public async Task<ActionResult<Response<CountStatisticsDTO>>> GetCountStatistics()
     {
