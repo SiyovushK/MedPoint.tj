@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Domain.Constants;
 using Domain.DTOs.ChatDTOs;
 using Domain.Responses;
 using Infrastructure.Interfaces;
@@ -28,10 +29,10 @@ public class ChatController : ControllerBase
     }
 
     [HttpPost("Send-message")]
-    public async Task<ActionResult<Response<int>>> SendMessage([FromQuery] int doctorId, [FromBody] string text)
+    public async Task<IActionResult> SendMessage([FromQuery] int? doctorId, [FromQuery] int? chatId, [FromBody] string text)
     {
-        var userId = GetUserIdFromToken();
-        var result = await _chatService.SendMessageAsync(userId, doctorId, text);
+        var senderId = GetUserIdFromToken();
+        var result = await _chatService.SendMessageAsync(senderId, doctorId, chatId, text);
         return StatusCode(result.StatusCode, result);
     }
 
@@ -43,11 +44,20 @@ public class ChatController : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
-    [HttpGet("Chats-list")]
+    [HttpGet("User-chats")]
     public async Task<ActionResult<Response<List<ChatDto>>>> Chats()
     {
         var userId = GetUserIdFromToken();
         var result = await _chatService.GetUserChatsAsync(userId);
+        return StatusCode(result.StatusCode, result);
+    }
+
+    [HttpGet("doctor-chats")]
+    [Authorize(Roles = Roles.Doctor)]
+    public async Task<IActionResult> GetDoctorChats()
+    {
+        var doctorId = GetUserIdFromToken();
+        var result = await _chatService.GetDoctorChatsAsync(doctorId);
         return StatusCode(result.StatusCode, result);
     }
 
