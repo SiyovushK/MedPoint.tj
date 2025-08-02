@@ -26,7 +26,7 @@ public class ChatService(DataContext _context) : IChatService
         if (user != null && user.IsDeleted)
             return new Response<int>(HttpStatusCode.NotFound, "User deleted");
             
-        if (doctor != null && !doctor.IsDeleted)
+        if (doctor != null && doctor.IsDeleted)
             return new Response<int>(HttpStatusCode.NotFound, "Doctor is deleted");
 
         Chat? chat = null;
