@@ -82,7 +82,7 @@ using (var scope = app.Services.CreateScope())
 
 await app.Services.ApplyMigrationsAndSeedAsync();
 
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
