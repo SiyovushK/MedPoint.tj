@@ -32,12 +32,12 @@ public class OrderService(
 
         // 1) User
         var user = await userRepository.GetByIdAsync(userId);
-        if (user == null || user.IsDeleted)
+        if (user == null)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"User with ID {userId} not found.");
 
         // 2) Doctor
         var doctor = await doctorRepository.GetByIdAsync(createOrder.DoctorId);
-        if (doctor == null || doctor.IsDeleted)
+        if (doctor == null)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createOrder.DoctorId} not found.");
         if (!doctor.IsActive)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor with ID {createOrder.DoctorId} is not available at the moment.");
@@ -59,10 +59,8 @@ public class OrderService(
         var schedule = await doctorScheduleRepository
             .GetAll()
             .FirstOrDefaultAsync(s => s.DoctorId == createOrder.DoctorId && s.DayOfWeek == dayOfWeek);
-
         if (schedule == null)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor's schedule is unavailable.");
-
         if (schedule.IsDayOff)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor is off on {dayOfWeek}.");
 
@@ -126,12 +124,12 @@ public class OrderService(
     {
         // 1) User
         var user = await userRepository.GetByIdAsync(createOrder.UserId);
-        if (user == null || user.IsDeleted)
+        if (user == null)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"User with ID {createOrder.UserId} not found.");
 
         // 2) Doctor
         var doctor = await doctorRepository.GetByIdAsync(createOrder.DoctorId);
-        if (doctor == null || doctor.IsDeleted)
+        if (doctor == null)
             return new Response<GetOrderDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createOrder.DoctorId} not found.");
         if (!doctor.IsActive)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor with ID {createOrder.DoctorId} is not available at the moment.");
@@ -153,10 +151,8 @@ public class OrderService(
         var schedule = await doctorScheduleRepository
             .GetAll()
             .FirstOrDefaultAsync(s => s.DoctorId == createOrder.DoctorId && s.DayOfWeek == dayOfWeek);
-
         if (schedule == null)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor's schedule is unavailable.");
-
         if (schedule.IsDayOff)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Doctor is off on {dayOfWeek}.");
 
@@ -236,9 +232,7 @@ public class OrderService(
         if (order == null)
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Order with id {orderId} is not found");
 
-        var getOrderDto = mapper.Map<GetOrderDTO>(order);
-
-        return new Response<GetOrderDTO>(getOrderDto);
+        return new Response<GetOrderDTO>(mapper.Map<GetOrderDTO>(order));
     }
     
     public async Task<Response<List<GetOrderDTO>>> GetUserOrdersAsync(int userId)
@@ -247,9 +241,7 @@ public class OrderService(
         if (orders == null)
             return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for user id {userId}.");
 
-        var getOrder = mapper.Map<List<GetOrderDTO>>(orders);
-
-        return new Response<List<GetOrderDTO>>(getOrder);
+        return new Response<List<GetOrderDTO>>(mapper.Map<List<GetOrderDTO>>(orders));
     }
 
     public async Task<Response<List<GetOrderDTO>>> GetUserOrdersFilteredAsync(UserOrderFilter filter)
@@ -282,9 +274,7 @@ public class OrderService(
         if (orders == null)
             return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for user id {filter.UserId}.");
 
-        var getOrdersDto = mapper.Map<List<GetOrderDTO>>(orders);
-
-        return new Response<List<GetOrderDTO>>(getOrdersDto);
+        return new Response<List<GetOrderDTO>>(mapper.Map<List<GetOrderDTO>>(orders));
     }
 
     public async Task<Response<List<GetOrderDTO>>> GetDoctorOrdersAsync(int doctorId)
@@ -297,9 +287,7 @@ public class OrderService(
         if (orders == null)
             return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for doctor id {doctorId}.");
 
-        var getOrder = mapper.Map<List<GetOrderDTO>>(orders);
-
-        return new Response<List<GetOrderDTO>>(getOrder);
+        return new Response<List<GetOrderDTO>>(mapper.Map<List<GetOrderDTO>>(orders));
     }
 
     public async Task<Response<List<GetOrderDTO>>> GetDoctorOrdersFilteredAsync(DoctorOrderFilter filter)
@@ -332,9 +320,7 @@ public class OrderService(
         if (orders == null)
             return new Response<List<GetOrderDTO>>(HttpStatusCode.NotFound, $"No orders found for doctor id {filter.DoctorId}.");
 
-        var getOrdersDto = mapper.Map<List<GetOrderDTO>>(orders);
-
-        return new Response<List<GetOrderDTO>>(getOrdersDto);
+        return new Response<List<GetOrderDTO>>(mapper.Map<List<GetOrderDTO>>(orders));
     }
 
     public async Task<Response<List<OrderStatisticsDTO>>> GetDoctorsOrderStatisticsAsync(int doctorId)
@@ -454,9 +440,7 @@ public class OrderService(
             .ThenByDescending(q => q.StartTime)
             .ToListAsync();
 
-        var getOrdersDto = mapper.Map<List<GetOrderDTO>>(orders);
-
-        return new Response<List<GetOrderDTO>>(getOrdersDto);
+        return new Response<List<GetOrderDTO>>(mapper.Map<List<GetOrderDTO>>(orders));
     }
 
 
@@ -477,9 +461,6 @@ public class OrderService(
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Only pending orders can be confirmed. Current status: {order.OrderStatus}");
 
         order.OrderStatus = OrderStatus.Active;
-
-        if (await orderRepository.UpdateAsync(order) == 0)
-            return new Response<GetOrderDTO>(HttpStatusCode.InternalServerError, "Failed to confirm the order.");
 
         var dto = mapper.Map<GetOrderDTO>(order);
 
@@ -514,9 +495,6 @@ public class OrderService(
         order.OrderStatus = OrderStatus.CancelledByDoctor;
         order.CancellationReason = cancelOrder.Reason;
 
-        if (await orderRepository.UpdateAsync(order) == 0)
-            return new Response<GetOrderDTO>(HttpStatusCode.InternalServerError, "Failed to confirm the order.");
-
         var dto = mapper.Map<GetOrderDTO>(order);
 
         var emailDto = new EmailDTO
@@ -548,9 +526,6 @@ public class OrderService(
             return new Response<GetOrderDTO>(HttpStatusCode.BadRequest, $"Only Pending and Active orders can be cancelled. Current status: {order.OrderStatus}");
 
         order.OrderStatus = OrderStatus.CancelledByUser;
-
-        if (await orderRepository.UpdateAsync(order) == 0)
-            return new Response<GetOrderDTO>(HttpStatusCode.InternalServerError, "Failed to confirm the order.");
 
         var dto = mapper.Map<GetOrderDTO>(order);
 

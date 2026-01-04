@@ -10,19 +10,19 @@ public class Doctor
     [Key]
     public int Id { get; set; }
     [Required, StringLength(50)]
-    public string FirstName { get; set; } = string.Empty;
+    public string FirstName { get; set; }
     [Required, StringLength(50)]
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; set; }
     [Required, StringLength(20)]
-    public string Phone { get; set; } = string.Empty;
+    public string Phone { get; set; }
     [Required, EmailAddress]
-    public string Email { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string Email { get; set; }
+    public string Description { get; set; }
     public List<DoctorEducation>? Education { get; set; }
     public string Role { get; set; } = Roles.Doctor;
 
     [Required]
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; }
     public string? ProfileImagePath { get; set; }
 
     [Required]

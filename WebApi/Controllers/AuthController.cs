@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Domain.Responses;
 using Infrastructure.Interfaces;
 using Domain.DTOs.AuthDTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -11,45 +10,27 @@ namespace WebApi.Controllers;
 public class AuthController(IAuthService _authService) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<ActionResult<Response<string>>> Register([FromBody] RegisterDTO dto)
-    {
-        var response = await _authService.Register(dto);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    public async Task<ActionResult> Register([FromBody] RegisterDTO dto)
+        => Ok(await _authService.Register(dto));
 
     [HttpPost("resend-verification-code")]
     public async Task<IActionResult> ResendVerificationCode([FromBody] string email)
-    {
-        var response = await _authService.ResendVerificationCodeAsync(email);
-        return StatusCode((int)response.StatusCode, response);
-    }
+        => Ok(await _authService.ResendVerificationCodeAsync(email));
 
     [HttpPost("verify-email")]
-    public async Task<ActionResult<Response<string>>> VerifyEmail([FromBody] VerifyEmailDTO dto)
-    {
-        var response = await _authService.VerifyRegistrationCode(dto);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailDTO dto)
+        => Ok(await _authService.VerifyRegistrationCode(dto));
 
     [HttpPost("login")]
-    public async Task<ActionResult<Response<TokenDTO>>> Login([FromBody] LoginDTO dto)
-    {
-        var response = await _authService.Login(dto);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    public async Task<ActionResult> Login([FromBody] LoginDTO dto)
+        => Ok(await _authService.Login(dto));
 
     [HttpPost("request-password-reset")]
-    public async Task<ActionResult<Response<string>>> RequestPasswordReset([FromBody] RequestResetPasswordDTO dto)
-    {
-        var response = await _authService.RequestResetPassword(dto);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    public async Task<ActionResult> RequestPasswordReset([FromBody] RequestResetPasswordDTO dto)
+        => Ok(await _authService.RequestResetPassword(dto));
 
     [HttpPost("reset-password")]
     [Authorize]
-    public async Task<ActionResult<Response<string>>> ResetPassword([FromBody] ResetPasswordDTO dto)
-    {
-        var response = await _authService.ResetPassword(dto);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDTO dto)
+        => Ok(await _authService.ResetPassword(dto));
 }

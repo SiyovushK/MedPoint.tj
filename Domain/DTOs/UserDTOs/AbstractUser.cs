@@ -5,16 +5,16 @@ namespace Domain.DTOs.UserDTOs;
 public class AbstractUser
 {
     [Required(ErrorMessage = "First name is required!")]
-    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Username must not contain spaces or special characters!")]
+    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "First Name must not contain spaces or special characters!")]
     public string FirstName { get; set; }
 
     [Required(ErrorMessage = "Last name is required!")]
-    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Username must not contain spaces or special characters!")]
+    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Last Name must not contain spaces or special characters!")]
     public string LastName { get; set; }
 
     [Required(ErrorMessage = "Phone is required!")]
     [MinLength(9, ErrorMessage = "Phone number must be at least 9 characters long!")]
-    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Username must not contain spaces or special characters!")]
+    [RegularExpression("^[0-9]+$", ErrorMessage = "Phone number must contain only digits.")]
     public string Phone { get; set; }
     
     [Required(ErrorMessage = "Email is required!")]

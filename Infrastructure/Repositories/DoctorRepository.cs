@@ -14,11 +14,8 @@ public class DoctorRepository(DataContext context) : IBaseRepository<Doctor, int
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> UpdateAsync(Doctor entity)
-    {
-        context.Doctors.Update(entity);
-        return await context.SaveChangesAsync();
-    }
+    public async Task UpdateAsync(Doctor entity)
+        => context.Doctors.Update(entity);
 
     public async Task<int> DeleteAsync(Doctor entity)
     {
@@ -33,7 +30,7 @@ public class DoctorRepository(DataContext context) : IBaseRepository<Doctor, int
 
     public async Task<Doctor?> GetByIdAsync(int id)
     {
-        return await context.Doctors.FirstOrDefaultAsync(u => u.Id == id);
+        return await context.Doctors.Where(u => u.IsDeleted == false).FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<List<Doctor>> GetByDoctorNameAsync(string doctorName)

@@ -56,9 +56,7 @@ public class DoctorScheduleService(
         if (await repository.AddAsync(schedule) == 0)
             return new Response<GetDoctorScheduleDTO>(HttpStatusCode.InternalServerError, "Error adding schedule for doctor");
 
-        var getDto = mapper.Map<GetDoctorScheduleDTO>(schedule);
-        
-        return new Response<GetDoctorScheduleDTO>(getDto);
+        return new Response<GetDoctorScheduleDTO>(mapper.Map<GetDoctorScheduleDTO>(schedule));
     }
 
     public async Task<Response<GetDoctorScheduleDTO>> UpdateAsync(int id, UpdateDoctorScheduleDTO dto)
@@ -105,12 +103,7 @@ public class DoctorScheduleService(
 
         mapper.Map(dto, schedule);
 
-        if (await repository.UpdateAsync(schedule) == 0)
-            return new Response<GetDoctorScheduleDTO>(HttpStatusCode.InternalServerError, "Error updating schedule.");
-
-        var getDto = mapper.Map<GetDoctorScheduleDTO>(schedule);
-
-        return new Response<GetDoctorScheduleDTO>(getDto);
+        return new Response<GetDoctorScheduleDTO>(mapper.Map<GetDoctorScheduleDTO>(schedule));
     }
 
     public async Task<Response<string>> DeleteAsync(int id)

@@ -1,5 +1,4 @@
 using System.Net;
-using Domain.Constants;
 using Domain.DTOs.ChatDTOs;
 using Domain.Entities;
 using Domain.Responses;

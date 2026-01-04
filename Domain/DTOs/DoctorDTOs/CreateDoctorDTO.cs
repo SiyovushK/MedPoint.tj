@@ -1,29 +1,12 @@
 using System.ComponentModel.DataAnnotations;
-using Domain.Enums;
 
 namespace Domain.DTOs.DoctorDTOs;
 
-public class CreateDoctorDTO
+public class CreateDoctorDTO : AbstractDoctor
 {
-    [Required, StringLength(50)]
-    public string FirstName { get; set; } = string.Empty;
-
-    [Required, StringLength(50)]
-    public string LastName { get; set; } = string.Empty;
-
-    [Required, StringLength(20)]
-    public string Phone { get; set; } = string.Empty;
-
-    [Required, EmailAddress]
-    public string Email { get; set; } = string.Empty;
-
-    public string Description { get; set; } = string.Empty;
-
     public List<DoctorEducation>? Education { get; set; }
 
-    [Required]
-    public string Password { get; set; } = string.Empty;
-
-    [Required]
-    public DoctorSpecialization[] Specialization { get; set; } = [];
+    [Required(ErrorMessage = "Password is required!"), MinLength(4, ErrorMessage = "Password must be at least 4 characters long!")]
+    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Password must contain only letters and digits (no symbols or spaces).")]
+    public string Password { get; set; }
 }

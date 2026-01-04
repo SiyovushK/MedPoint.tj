@@ -1,6 +1,5 @@
 using System.Net;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using AutoMapper;
 using Domain.Constants;
 using Domain.DTOs.EmailDTOs;
@@ -36,48 +35,19 @@ public class UserService(
         createUser.Email = createUser.Email.Trim();
         createUser.Phone = createUser.Phone.Trim();
 
-        //FirstName
-        if (string.IsNullOrWhiteSpace(createUser.FirstName))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "First Name can't be empty");
-
-        if (!createUser.FirstName.All(char.IsLetterOrDigit))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "First Name must not contain spaces or special characters!");
-
-        //LastName
-        if (string.IsNullOrWhiteSpace(createUser.LastName))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Last Name can't be empty");
-
-        if (!createUser.LastName.All(char.IsLetterOrDigit))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Last Name must not contain spaces or special characters!");
-
         //Phone
-        if (string.IsNullOrWhiteSpace(createUser.Phone))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Phone can't be empty");
-
-        if (!createUser.Phone.All(char.IsDigit))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Phone must contain only numbers, no spaces or special characters allowed!");
-
-        if (createUser.Phone.Length < 9)
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Phone size must contain at least 9 digits");
-
         var phoneCheck = await userRepository.GetByPhoneAsync(createUser.Phone.Trim());
         if (phoneCheck != null)
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "User with this phone numbers alredy registered");
 
         //Email
-        if (string.IsNullOrWhiteSpace(createUser.Email))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email can't be empty");
-
         try
         {
             var addr = new System.Net.Mail.MailAddress(createUser.Email);
             if (addr.Address != createUser.Email)
                 return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");
         }
-        catch
-        {
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");
-        }
+        catch { return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid"); }
 
         if (!emailVerification.EmailVerificationMethod(createUser.Email))
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email domen is invalid");
@@ -85,16 +55,6 @@ public class UserService(
         var emailCheck = await userRepository.GetByEmailAsync(createUser.Email);
         if (emailCheck != null)
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "User with this email is alredy registered");
-
-        //Password
-        if (string.IsNullOrWhiteSpace(createUser.Password))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Password can't be empty");
-
-        if (createUser.Password.Length < 4)
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Password must contain 4 symbols or more");
-
-        if (!Regex.IsMatch(createUser.Password, @"^[a-zA-Z0-9]+$"))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Password must only contain letters and digits! (no symbols or spaces)");
 
         //Role
         var validRoles = new[] { "User", "Admin" };
@@ -140,30 +100,7 @@ public class UserService(
         if (checkUser.Role == Roles.Admin && userId != id)
             return new Response<GetUserDTO>(HttpStatusCode.Forbidden, $"Access denied. Only admin himself can update his account");
 
-        //FirstName
-        if (string.IsNullOrWhiteSpace(updateUser.FirstName))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "First Name can't be empty");
-
-        if (!updateUser.FirstName.All(char.IsLetterOrDigit))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "First Name must not contain spaces or special characters!");
-
-        //LastName
-        if (string.IsNullOrWhiteSpace(updateUser.LastName))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Last Name can't be empty");
-
-        if (!updateUser.LastName.All(char.IsLetterOrDigit))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Last Name must not contain spaces or special characters!");
-
         //Phone
-        if (string.IsNullOrWhiteSpace(updateUser.Phone))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Phone can't be empty");
-
-        if (!updateUser.Phone.All(char.IsDigit))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Phone must contain only numbers, no spaces or special characters allowed!");
-
-        if (updateUser.Phone.Length < 9)
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Phone size must contain at least 9 digits");
-
         if (!string.Equals(updateUser.Phone, checkUser.Phone, StringComparison.OrdinalIgnoreCase))
         {
             var phoneCheck = await userRepository.GetByPhoneAsync(updateUser.Phone);
@@ -172,19 +109,13 @@ public class UserService(
         }
 
         //Email
-        if (string.IsNullOrWhiteSpace(updateUser.Email))
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email can't be empty");
-
         try
         {
             var addr = new System.Net.Mail.MailAddress(updateUser.Email);
             if (addr.Address != updateUser.Email)
                 return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");
         }
-        catch
-        {
-            return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");
-        }
+        catch { return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email format is invalid");}
 
         if (!emailVerification.EmailVerificationMethod(updateUser.Email))
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, "Email domen is invalid.");
@@ -418,10 +349,6 @@ public class UserService(
                 return new Response<string>(HttpStatusCode.BadRequest, "Doctor is already active");
 
             doctor.IsDeleted = false;
-
-            var updateResult = await doctorRepository.UpdateAsync(doctor);
-            if (updateResult == 0)
-                return new Response<string>(HttpStatusCode.InternalServerError, "Failed to restore doctor");
 
             await emailService.SendEmailAsync(new EmailDTO
             {

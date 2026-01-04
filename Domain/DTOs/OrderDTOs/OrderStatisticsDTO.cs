@@ -2,7 +2,7 @@ namespace Domain.DTOs.OrderDTOs;
 
 public class OrderStatisticsDTO
 {
-    public string Month { get; set; } = string.Empty;
+    public string Month { get; set; }
     public int Finished { get; set; }
     public int NotAccepted { get; set; }
     public int CancelledByUser { get; set; }

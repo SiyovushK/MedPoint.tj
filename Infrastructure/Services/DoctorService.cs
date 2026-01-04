@@ -1,6 +1,6 @@
 using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using AutoMapper;
 using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.EmailDTOs;
@@ -14,7 +14,6 @@ using Infrastructure.Services.HelperServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 
 namespace Infrastructure.Services;
 
@@ -37,48 +36,19 @@ public class DoctorService(
         createDoctor.Phone = createDoctor.Phone.Trim();
         createDoctor.Description = createDoctor.Description.Trim();
 
-        // FirstName
-        if (string.IsNullOrWhiteSpace(createDoctor.FirstName))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "First name can't be empty.");
-
-        if (!createDoctor.FirstName.All(char.IsLetterOrDigit))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "First name must not contain spaces or special characters.");
-
-        // LastName
-        if (string.IsNullOrWhiteSpace(createDoctor.LastName))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name can't be empty.");
-
-        // if (!createDoctor.LastName.All(char.IsLetterOrDigit))
-        //     return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name must not contain spaces or special characters.");
-
         // Phone
-        if (string.IsNullOrWhiteSpace(createDoctor.Phone))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Phone can't be empty.");
-
-        if (!createDoctor.Phone.All(char.IsDigit))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Phone must contain only digits.");
-
-        if (createDoctor.Phone.Length < 9)
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Phone must contain at least 9 digits.");
-
         var phoneExists = await doctorRepository.GetByPhoneAsync(createDoctor.Phone);
         if (phoneExists != null)
             return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Doctor with this phone already exists.");
 
         // Email
-        if (string.IsNullOrWhiteSpace(createDoctor.Email))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email can't be empty.");
-
         try
         {
-            var addr = new System.Net.Mail.MailAddress(createDoctor.Email);
+            var addr = new MailAddress(createDoctor.Email);
             if (addr.Address != createDoctor.Email)
                 return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email format is invalid.");
         }
-        catch
-        {
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email format is invalid.");
-        }
+        catch { return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email format is invalid."); }
 
         if (!emailVerification.EmailVerificationMethod(createDoctor.Email))
             return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email domen is invalid.");
@@ -87,20 +57,7 @@ public class DoctorService(
         if (emailExists != null)
             return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Doctor with this email already exists.");
 
-        // Password
-        if (string.IsNullOrWhiteSpace(createDoctor.Password))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Password can't be empty.");
-
-        if (createDoctor.Password.Length < 4)
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Password must contain at least 4 characters.");
-
-        if (!Regex.IsMatch(createDoctor.Password, @"^[a-zA-Z0-9]+$"))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Password must contain only letters and digits (no symbols or spaces).");
-
         // Specialization
-        if (createDoctor.Specialization == null || createDoctor.Specialization.Length == 0)
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "At least one specialization must be selected.");
-
         var doctor = mapper.Map<Doctor>(createDoctor);
         doctor.PasswordHash = passwordHasher.HashPassword(doctor, createDoctor.Password);
 
@@ -161,33 +118,10 @@ public class DoctorService(
 
         // Id
         var checkDoctor = await doctorRepository.GetByIdAsync(id);
-        if (checkDoctor == null || checkDoctor.IsDeleted == true)
+        if (checkDoctor == null || checkDoctor.IsDeleted is true)
             return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, $"Doctor with id {id} is not found");
 
-        // FirstName
-        if (string.IsNullOrWhiteSpace(updateDoctor.FirstName))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "First name can't be empty.");
-
-        if (!updateDoctor.FirstName.All(char.IsLetterOrDigit))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "First name must not contain spaces or special characters.");
-
-        // LastName
-        if (string.IsNullOrWhiteSpace(updateDoctor.LastName))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name can't be empty.");
-
-        // if (!updateDoctor.LastName.All(char.IsLetterOrDigit))
-        //     return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Last name must not contain spaces or special characters.");
-
         // Phone
-        if (string.IsNullOrWhiteSpace(updateDoctor.Phone))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Phone can't be empty.");
-
-        if (!updateDoctor.Phone.All(char.IsDigit))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Phone must contain only digits.");
-
-        if (updateDoctor.Phone.Length < 9)
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Phone must contain at least 9 digits.");
-
         if (!string.Equals(updateDoctor.Phone, checkDoctor.Phone, StringComparison.OrdinalIgnoreCase))
         {
             var phoneCheck = await doctorRepository.GetByPhoneAsync(updateDoctor.Phone);
@@ -196,12 +130,9 @@ public class DoctorService(
         }
 
         // Email
-        if (string.IsNullOrWhiteSpace(updateDoctor.Email))
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email can't be empty.");
-
         try
         {
-            var addr = new System.Net.Mail.MailAddress(updateDoctor.Email);
+            var addr = new MailAddress(updateDoctor.Email);
             if (addr.Address != updateDoctor.Email)
                 return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Email format is invalid.");
         }
@@ -220,14 +151,7 @@ public class DoctorService(
                 return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Doctor with this email is already registered");
         }
 
-        // Specialization
-        if (updateDoctor.Specialization == null || updateDoctor.Specialization.Length == 0)
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "At least one specialization must be selected.");
-
         mapper.Map(updateDoctor, checkDoctor);
-
-        if (await doctorRepository.UpdateAsync(checkDoctor) == 0)
-            return new Response<GetDoctorDTO>(HttpStatusCode.BadRequest, "Doctor update error");
 
         var emailDto = new EmailDTO
         {
@@ -269,13 +193,6 @@ public class DoctorService(
             return new Response<GetDoctorDTO>(HttpStatusCode.NotFound, "Doctor not found");
 
         doctor.IsActive = doctorActivity.IsActive;
-
-        var updated = await doctorRepository.UpdateAsync(doctor);
-        if (updated == 0)
-        {
-            var action = doctorActivity.IsActive ? "activate" : "deactivate";
-            return new Response<GetDoctorDTO>(HttpStatusCode.InternalServerError, $"Failed to {action} the doctor.");
-        }
 
         var getDoctorDTO = mapper.Map<GetDoctorDTO>(doctor);
 

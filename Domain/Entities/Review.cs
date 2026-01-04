@@ -12,7 +12,7 @@ public class Review
     [Required]
     public int Rating { get; set; }
     [Required, StringLength(500)]
-    public string Comment { get; set; } = string.Empty;
+    public string Comment { get; set; }
 
     public bool IsHidden { get; set; } = false;
 

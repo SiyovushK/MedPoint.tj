@@ -1,4 +1,3 @@
-using Domain.DTOs.DoctorDTOs;
 using Domain.DTOs.OrderDTOs;
 using Domain.Entities;
 using Domain.Enums;
@@ -16,11 +15,8 @@ public class OrderRepository(DataContext context) : IBaseRepository<Order, int>
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> UpdateAsync(Order entity)
-    {
-        context.Orders.Update(entity);
-        return await context.SaveChangesAsync();
-    }
+    public async Task UpdateAsync(Order entity)
+        => context.Orders.Update(entity);
 
     public async Task<int> DeleteAsync(Order entity)
     {

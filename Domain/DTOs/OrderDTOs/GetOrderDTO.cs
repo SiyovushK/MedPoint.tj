@@ -6,9 +6,9 @@ public class GetOrderDTO
 {
     public int Id { get; set; }
     public int DoctorId { get; set; }
-    public string DoctorName { get; set; } = string.Empty;
+    public string DoctorName { get; set; }
     public int UserId { get; set; }
-    public string UserName { get; set; } = string.Empty;
+    public string UserName { get; set; }
     public DateOnly Date { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }

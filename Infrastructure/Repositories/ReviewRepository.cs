@@ -1,7 +1,6 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;

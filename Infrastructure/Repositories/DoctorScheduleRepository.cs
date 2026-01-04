@@ -13,12 +13,9 @@ public class DoctorScheduleRepository(DataContext context) : IBaseRepository<Doc
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> UpdateAsync(DoctorSchedule entity)
-    {
-        context.DoctorSchedules.Update(entity);
-        return await context.SaveChangesAsync();
-    }
-
+    public async Task UpdateAsync(DoctorSchedule entity)
+        => context.DoctorSchedules.Update(entity);
+        
     public async Task<int> DeleteAsync(DoctorSchedule entity)
     {
         context.DoctorSchedules.Remove(entity);

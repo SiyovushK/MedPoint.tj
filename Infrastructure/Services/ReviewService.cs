@@ -21,7 +21,7 @@ public class ReviewService(
     {
         // User
         var user = await userRepository.GetByIdAsync(createReview.UserId);
-        if (user == null || user.IsDeleted)
+        if (user == null)
             return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"User with ID {createReview.UserId} not found.");
 
         // Doctor
@@ -29,17 +29,9 @@ public class ReviewService(
         if (createReview.DoctorId.HasValue)
         {
             doctor = await doctorRepository.GetByIdAsync(createReview.DoctorId.Value);
-            if (doctor == null || doctor.IsDeleted)
+            if (doctor == null)
                 return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createReview.DoctorId} not found.");
         }
-
-        // Rating
-        if (createReview.Rating < 1 || createReview.Rating > 5)
-            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Rating must be between 1 and 5.");
-
-        // Comment
-        if (createReview.Comment.Length < 1 || createReview.Comment.Length > 500)
-            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Comment must contain between 1 and 500 characters.");
 
         var review = mapper.Map<Review>(createReview);
 
@@ -62,7 +54,7 @@ public class ReviewService(
 
         // User
         var user = await userRepository.GetByIdAsync(userId);
-        if (user == null || user.IsDeleted)
+        if (user == null)
             return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"User with ID {userId} not found.");
 
         // Doctor
@@ -70,17 +62,9 @@ public class ReviewService(
         if (createReview.DoctorId.HasValue)
         {
             doctor = await doctorRepository.GetByIdAsync(createReview.DoctorId.Value);
-            if (doctor == null || doctor.IsDeleted)
+            if (doctor == null)
                 return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"Doctor with ID {createReview.DoctorId} not found.");
         }
-
-        // Rating
-        if (createReview.Rating < 1 || createReview.Rating > 5)
-            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Rating must be between 1 and 5.");
-
-        // Comment
-        if (createReview.Comment.Length < 1 || createReview.Comment.Length > 500)
-            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Comment must contain between 1 and 500 characters.");
 
         var review = mapper.Map<Review>(createReview);
         review.UserId = userId;
@@ -109,7 +93,7 @@ public class ReviewService(
 
         // User
         var user = await userRepository.GetByIdAsync(userId);
-        if (user == null || user.IsDeleted)
+        if (user == null)
             return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"User with ID {userId} not found.");
 
         // Doctor
@@ -117,17 +101,9 @@ public class ReviewService(
         if (updateReview.DoctorId.HasValue)
         {
             doctor = await doctorRepository.GetByIdAsync(updateReview.DoctorId.Value);
-            if (doctor == null || doctor.IsDeleted)
+            if (doctor == null)
                 return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"Doctor with ID {updateReview.DoctorId} not found.");
         }
-
-        // Rating
-        if (updateReview.Rating < 1 || updateReview.Rating > 5)
-            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Rating must be between 1 and 5.");
-
-        // Comment
-        if (updateReview.Comment.Length < 1 || updateReview.Comment.Length > 500)
-            return new Response<GetReviewDTO>(HttpStatusCode.BadRequest, "Comment must contain between 1 and 500 characters.");
 
         mapper.Map(updateReview, existingReview);
         existingReview.UserId = userId;

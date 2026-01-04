@@ -1,7 +1,6 @@
 using Domain.Constants;
 using Domain.DTOs.ScheduleDTOs;
 using Domain.Filters;
-using Domain.Responses;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,49 +13,31 @@ public class DoctorScheduleController(IDoctorScheduleService scheduleService) : 
 {
     [HttpPost]
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<GetDoctorScheduleDTO>>> CreateAsync(CreateDoctorScheduleDTO dto)
-    {
-        var result = await scheduleService.CreateAsync(dto);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> CreateAsync(CreateDoctorScheduleDTO dto)
+        => Ok(await scheduleService.CreateAsync(dto));
 
     [HttpPut]
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<GetDoctorScheduleDTO>>> UpdateAsync(int id, UpdateDoctorScheduleDTO dto)
-    {
-        var result = await scheduleService.UpdateAsync(id, dto);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> UpdateAsync(int id, UpdateDoctorScheduleDTO dto)
+        => Ok(await scheduleService.UpdateAsync(id, dto));
 
     [HttpDelete]
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<string>>> DeleteAsync(int id)
-    {
-        var result = await scheduleService.DeleteAsync(id);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> DeleteAsync(int id)
+        => Ok(await scheduleService.DeleteAsync(id));
 
     [HttpGet("ById")]
     [Authorize(Roles = $"{Roles.Doctor}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<GetDoctorScheduleDTO>>> GetByIdAsync(int id)
-    {
-        var result = await scheduleService.GetByIdAsync(id);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetByIdAsync(int id)
+        => Ok(await scheduleService.GetByIdAsync(id));
 
     [HttpGet("By-doctor-id")]
     [AllowAnonymous]
-    public async Task<ActionResult<Response<List<GetDoctorScheduleDTO>>>> GetByDoctorIdAsync(int doctorId)
-    {
-        var result = await scheduleService.GetByDoctorIdAsync(doctorId);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetByDoctorIdAsync(int doctorId)
+        => Ok(await scheduleService.GetByDoctorIdAsync(doctorId));
 
     [HttpGet("All")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<Response<List<GetDoctorScheduleDTO>>>> GetAllAsync([FromQuery] DoctorScheduleFilter filter)
-    {
-        var result = await scheduleService.GetAllAsync(filter);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetAllAsync([FromQuery] DoctorScheduleFilter filter)
+        => Ok(await scheduleService.GetAllAsync(filter));
 }

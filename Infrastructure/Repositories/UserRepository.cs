@@ -31,7 +31,7 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
     }
 
     public async Task<User?> GetByIdAsync(int id)
-        => await context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        => await context.Users.Where(u => u.IsDeleted == false).FirstOrDefaultAsync(u => u.Id == id);
 
     public async Task<List<User>> GetByUserNameAsync(string userName)
     {

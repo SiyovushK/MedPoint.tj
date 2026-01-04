@@ -6,8 +6,11 @@ public class CreateReviewsAdminDTO
 {
     public int UserId { get; set; }
     public int? DoctorId { get; set; }
-    [Required]
+
+    [Required(ErrorMessage = "Rating is required!")]
+    [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
     public int Rating { get; set; }
-    [Required, StringLength(500)]
-    public string Comment { get; set; } = string.Empty;
+
+    [StringLength(500, ErrorMessage = "Comment cannot exceed 500 characters.")]
+    public string Comment { get; set; }
 }

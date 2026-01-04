@@ -6,6 +6,6 @@ public class ChatDto
     public int UserId { get; set; }
     public int DoctorId { get; set; }
     public DateTime LastMessageSentAt { get; set; }
-    public string LastMessage { get; set; } = string.Empty;
+    public string LastMessage { get; set; }
     public int UnreadMessages { get; set; }
 }

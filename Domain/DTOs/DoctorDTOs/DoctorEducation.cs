@@ -8,5 +8,5 @@ public class DoctorEducation
     public int Id { get; set; }
     public Int16 YearFrom { get; set; }
     public Int16? YearTo { get; set; }
-    public string Description { get; set; } = string.Empty;
+    public string Description { get; set; }
 }

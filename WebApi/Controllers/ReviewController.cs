@@ -1,7 +1,6 @@
 using Domain.Constants;
 using Domain.DTOs.ReviewDTOs;
 using Domain.Filters;
-using Domain.Responses;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,73 +13,46 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
 {
     [HttpPost("Reviews-create")]
     [AllowAnonymous]
-    public async Task<ActionResult<Response<GetReviewDTO>>> CreateReviewsAsync(CreateReviewsAdminDTO createReview)
-    {
-        var result = await reviewService.CreateReviewsAsync(createReview);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> CreateReviewsAsync(CreateReviewsAdminDTO createReview)
+        => Ok(await reviewService.CreateReviewsAsync(createReview));
 
     [HttpPost]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<GetReviewDTO>>> CreateAsync(CreateReviewDTO createReview)
-    {
-        var result = await reviewService.CreateAsync(User, createReview);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> CreateAsync(CreateReviewDTO createReview)
+        => Ok(await reviewService.CreateAsync(User, createReview));
 
     [HttpPut]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<GetReviewDTO>>> UpdateAsync(int reviewId, UpdateReviewDTO updateReview)
-    {
-        var result = await reviewService.UpdateAsync(reviewId, User, updateReview);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> UpdateAsync(int reviewId, UpdateReviewDTO updateReview)
+        => Ok(await reviewService.UpdateAsync(reviewId, User, updateReview));
 
     [HttpDelete]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<string>>> DeleteAsync(int reviewId)
-    {
-        var result = await reviewService.DeleteAsync(reviewId);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> DeleteAsync(int reviewId)
+        => Ok(await reviewService.DeleteAsync(reviewId));
 
     [HttpGet("ById")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<Response<GetReviewDTO>>> GetByIdAsync(int reviewId)
-    {
-        var result = await reviewService.GetByIdAsync(reviewId);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetByIdAsync(int reviewId)
+        => Ok(await reviewService.GetByIdAsync(reviewId));
 
     [HttpGet("ByUserId")]
     [Authorize(Roles = $"{Roles.User}, {Roles.Admin}")]
-    public async Task<ActionResult<Response<List<GetReviewDTO>>>> GetByUserIdAsync(int userId)
-    {
-        var result = await reviewService.GetByUserIdAsync(userId);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetByUserIdAsync(int userId)
+        => Ok(await reviewService.GetByUserIdAsync(userId));
 
     [HttpGet("ByDoctorId")]
     [AllowAnonymous]
-    public async Task<ActionResult<Response<List<GetReviewDTO>>>> GetByDoctorIdAsync(int doctorId)
-    {
-        var result = await reviewService.GetByDoctorIdAsync(doctorId);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetByDoctorIdAsync(int doctorId)
+        => Ok(await reviewService.GetByDoctorIdAsync(doctorId));
 
     [HttpGet("All")]
     [AllowAnonymous]
-    public async Task<ActionResult<Response<List<GetReviewDTO>>>> GetAllAsync([FromQuery] ReviewFilter filter)
-    {
-        var result = await reviewService.GetAllAsync(filter);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> GetAllAsync([FromQuery] ReviewFilter filter)
+        => Ok(await reviewService.GetAllAsync(filter));
 
     [HttpPut("Hide-Or-Show-Review")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<Response<string>>> HideOrShowAsync(HideOrShowDTO dto)
-    {
-        var result = await reviewService.HideOrShowAsync(dto);
-        return StatusCode((int)result.StatusCode, result);
-    }
+    public async Task<ActionResult> HideOrShowAsync(HideOrShowDTO dto)
+        => Ok(await reviewService.HideOrShowAsync(dto));
 }

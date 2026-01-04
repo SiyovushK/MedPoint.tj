@@ -2,8 +2,8 @@ namespace Domain.DTOs.AdminDashboardDTOs;
 
 public class MonthComparisonDTO
 {
-    public string Category { get; set; } = string.Empty;
+    public string Category { get; set; }
     public int Current { get; set; }
     public int Previous { get; set; }
-    public string PercenteDifference { get; set; } = string.Empty;
+    public string PercenteDifference { get; set; }
 }
