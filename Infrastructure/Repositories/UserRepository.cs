@@ -14,11 +14,8 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> UpdateAsync(User entity)
-    {
-        context.Users.Update(entity);
-        return await context.SaveChangesAsync();
-    }
+    public async Task UpdateAsync(User entity)
+        => context.Users.Update(entity);
 
     public async Task<int> DeleteAsync(User entity)
     {
@@ -34,9 +31,7 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
     }
 
     public async Task<User?> GetByIdAsync(int id)
-    {
-        return await context.Users.FirstOrDefaultAsync(u => u.Id == id);
-    }
+        => await context.Users.FirstOrDefaultAsync(u => u.Id == id);
 
     public async Task<List<User>> GetByUserNameAsync(string userName)
     {
@@ -49,27 +44,15 @@ public class UserRepository(DataContext context) : IBaseRepository<User, int>
     }
 
     public async Task<User?> GetByPhoneAsync(string phone)
-    {
-        return await context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
-    }
+        => await context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
 
     public async Task<User?> GetByEmailAsync(string email)
-    {
-        var emailLower = email.ToLower();
-        return await context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
-    }
+        => await context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
 
-    public async Task<int> MarkUserAsDeleted(int id)
+    public async Task MarkUserAsDeleted(int id)
     {
         var user = await context.Users.FirstOrDefaultAsync(u => u.Id == id);
-        user!.IsDeleted = true;
-        context.Users.Update(user);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> SaveChangesAsync()
-    {
-        return await context.SaveChangesAsync();
+        await context.Users.ExecuteUpdateAsync(u => u.SetProperty(u => u.IsDeleted, true));
     }
 
 }  

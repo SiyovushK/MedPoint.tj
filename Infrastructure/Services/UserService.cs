@@ -198,9 +198,6 @@ public class UserService(
 
         mapper.Map(updateUser, checkUser);
 
-        if (await userRepository.UpdateAsync(checkUser) == 0)
-            return new Response<GetUserDTO>(HttpStatusCode.InternalServerError, "User update error!");
-
         var emailDto = new EmailDTO
         {
             To = checkUser.Email,
@@ -245,9 +242,6 @@ public class UserService(
         var user = await userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
             return new Response<string>(HttpStatusCode.NotFound, $"User with id {userId} not found");
-
-        if (await userRepository.MarkUserAsDeleted(userId) == 0)
-            return new Response<string>(HttpStatusCode.InternalServerError, "User couldn't be deleted");
 
         var emailDto = new EmailDTO
         {
@@ -400,10 +394,6 @@ public class UserService(
 
             user.IsDeleted = false;
 
-            var updateResult = await repository.UpdateAsync(user);
-            if (updateResult == 0)
-                return new Response<string>(HttpStatusCode.InternalServerError, "Failed to restore user");
-
             await emailService.SendEmailAsync(new EmailDTO
             {
                 To = user.Email,
@@ -460,9 +450,6 @@ public class UserService(
             return new Response<GetUserDTO>(HttpStatusCode.BadRequest, $"User already assigned to {dto.Role} role");
 
         user.Role = dto.Role;
-
-        if (await userRepository.UpdateAsync(user) == 0)
-            return new Response<GetUserDTO>(HttpStatusCode.InternalServerError, "Failed to update user role");
 
         var emailDto = new EmailDTO
         {

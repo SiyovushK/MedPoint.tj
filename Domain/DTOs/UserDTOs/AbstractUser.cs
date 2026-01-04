@@ -1,0 +1,23 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Domain.DTOs.UserDTOs;
+
+public class AbstractUser
+{
+    [Required(ErrorMessage = "First name is required!")]
+    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Username must not contain spaces or special characters!")]
+    public string FirstName { get; set; }
+
+    [Required(ErrorMessage = "Last name is required!")]
+    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Username must not contain spaces or special characters!")]
+    public string LastName { get; set; }
+
+    [Required(ErrorMessage = "Phone is required!")]
+    [MinLength(9, ErrorMessage = "Phone number must be at least 9 characters long!")]
+    [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Username must not contain spaces or special characters!")]
+    public string Phone { get; set; }
+    
+    [Required(ErrorMessage = "Email is required!")]
+    [EmailAddress(ErrorMessage = "Invalid email format!")]
+    public string Email { get; set; }
+}

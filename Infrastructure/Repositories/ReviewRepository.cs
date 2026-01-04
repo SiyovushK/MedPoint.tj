@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
@@ -13,11 +14,8 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> UpdateAsync(Review entity)
-    {
-        context.Reviews.Update(entity);
-        return await context.SaveChangesAsync();
-    }
+    public async Task UpdateAsync(Review entity)
+        => context.Reviews.Update(entity);
 
     public async Task<int> DeleteAsync(Review entity)
     {
@@ -39,6 +37,7 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
         return await context.Reviews
             .Include(r => r.User)
             .Include(r => r.Doctor)
+            .Where(r => r.IsHidden == false)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
@@ -50,7 +49,7 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
-    }   
+    }
 
     public async Task<List<Review>> GetByDoctorIdAsync(int doctorId)
     {
@@ -60,5 +59,17 @@ public class ReviewRepository(DataContext context) : IBaseRepository<Review, int
             .Where(r => r.DoctorId == doctorId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
-    }   
+    }
+
+    public async Task ExecuteUpdateAsync(int id, bool isHidden)
+    {
+        await context.Reviews
+            .Where(r => r.Id == id)
+            .ExecuteUpdateAsync(x => x
+                .SetProperty(r => r.IsHidden, isHidden)
+            );
+    }
+
+    public async Task<bool> ExistsAsync(int id)
+        => await context.Reviews.AnyAsync(r => r.Id == id);
 } 

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Security.Claims;
 using AutoMapper;
@@ -9,7 +8,6 @@ using Domain.Responses;
 using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace Infrastructure.Services;
 
@@ -106,7 +104,7 @@ public class ReviewService(
 
         // Review
         var existingReview = await reviewRepository.GetByIdAsync(reviewId);
-        if (existingReview == null || existingReview.IsHidden)
+        if (existingReview == null)
             return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"Review with ID {reviewId} not found.");
 
         // User
@@ -135,9 +133,6 @@ public class ReviewService(
         existingReview.UserId = userId;
         existingReview.UpdatedAt = DateTime.UtcNow;
 
-        if (await reviewRepository.UpdateAsync(existingReview) == 0)
-            return new Response<GetReviewDTO>(HttpStatusCode.InternalServerError, "Failed to update review.");
-
         var getReview = mapper.Map<GetReviewDTO>(existingReview);
         getReview.UserName = $"{user.FirstName} {user.LastName}";
         if (doctor != null)
@@ -149,7 +144,7 @@ public class ReviewService(
     public async Task<Response<string>> DeleteAsync(int reviewId)
     {
         var review = await reviewRepository.GetByIdAsync(reviewId);
-        if (review == null || review.IsHidden)
+        if (review == null)
             return new Response<string>(HttpStatusCode.NotFound, $"Review with ID {reviewId} not found.");
 
         if (await reviewRepository.DeleteAsync(review) == 0)
@@ -206,9 +201,7 @@ public class ReviewService(
 
         var reviews = await query.ToListAsync();
 
-        var getReviewsDto = mapper.Map<List<GetReviewDTO>>(reviews);
-
-        return new Response<List<GetReviewDTO>>(getReviewsDto);
+        return new Response<List<GetReviewDTO>>(mapper.Map<List<GetReviewDTO>>(reviews));
     }
 
     public async Task<Response<GetReviewDTO>> GetByIdAsync(int reviewId)
@@ -217,9 +210,7 @@ public class ReviewService(
         if (review == null)
             return new Response<GetReviewDTO>(HttpStatusCode.NotFound, $"Review with ID {reviewId} not found.");
 
-        var getReview = mapper.Map<GetReviewDTO>(review);
-
-        return new Response<GetReviewDTO>(getReview);
+        return new Response<GetReviewDTO>(mapper.Map<GetReviewDTO>(review));
     }
 
     public async Task<Response<List<GetReviewDTO>>> GetByUserIdAsync(int userId)
@@ -228,9 +219,7 @@ public class ReviewService(
         if (reviews == null)
             return new Response<List<GetReviewDTO>>(HttpStatusCode.NotFound, $"No reviews found for user id {userId}.");
 
-        var getReview = mapper.Map<List<GetReviewDTO>>(reviews);
-
-        return new Response<List<GetReviewDTO>>(getReview);
+        return new Response<List<GetReviewDTO>>(mapper.Map<List<GetReviewDTO>>(reviews));
     }
 
     public async Task<Response<List<GetReviewDTO>>> GetByDoctorIdAsync(int doctorId)
@@ -239,22 +228,16 @@ public class ReviewService(
         if (reviews == null)
             return new Response<List<GetReviewDTO>>(HttpStatusCode.NotFound, $"No reviews found for doctor id {doctorId}.");
 
-        var getReview = mapper.Map<List<GetReviewDTO>>(reviews);
-
-        return new Response<List<GetReviewDTO>>(getReview);
+        return new Response<List<GetReviewDTO>>(mapper.Map<List<GetReviewDTO>>(reviews));
     }
 
     public async Task<Response<string>> HideOrShowAsync(HideOrShowDTO dto)
     {
-        var review = await reviewRepository.GetByIdAsync(dto.ReviewId);
-        if (review == null)
+        if (await reviewRepository.ExistsAsync(dto.ReviewId))
             return new Response<string>(HttpStatusCode.NotFound, $"Review with ID {dto.ReviewId} not found.");
 
-        review.IsHidden = dto.IsHidden;
+        await reviewRepository.ExecuteUpdateAsync(dto.ReviewId, dto.IsHidden);
 
-        if (await reviewRepository.UpdateAsync(review) == 0)
-            return new Response<string>(HttpStatusCode.InternalServerError, $"Failed to {(dto.IsHidden ? "hide" : "show")} the review.");
-
-        return new Response<string>($"Review is now {(review.IsHidden ? "hidden" : "unhidden")}");
+        return new Response<string>($"Review is now {(dto.IsHidden ? "hidden" : "unhidden")}");
     }
 }
